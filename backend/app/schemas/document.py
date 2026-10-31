@@ -19,12 +19,16 @@ class DocumentCreateRequest(BaseModel):
 
 
 class DocumentUpdateRequest(BaseModel):
-    """Payload to update document metadata, rename, or update trash state."""
+    """Payload to update document metadata, content, rename, or update trash state."""
 
     title: Optional[str] = Field(
         default=None,
         max_length=255,
         description="New document title.",
+    )
+    content: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Updated structured Tiptap JSON document content.",
     )
     is_deleted: Optional[bool] = Field(
         default=None,
@@ -53,3 +57,4 @@ class DocumentListResponse(BaseModel):
     total: int
     active_count: int
     trash_count: int
+

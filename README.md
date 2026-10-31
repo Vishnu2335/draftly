@@ -1,6 +1,6 @@
 # Draftly — Modern Document Workspace
 
-> **Phase 3: Workspace Dashboard** — Status: Complete & Operational
+> **Phase 4 & Phase 5: Document Editor and File Import** — Status: Complete & Operational
 
 Draftly is a modern, focused, distraction-free document creation, editing, importing, and sharing workspace. Designed with its own distinct visual and editorial identity, Draftly intentionally avoids the skeuomorphic paper margins, print rulers, and toolbar bloat typical of legacy suites like Google Docs.
 
@@ -11,9 +11,9 @@ Draftly is a modern, focused, distraction-free document creation, editing, impor
 Draftly provides a calm, high-velocity writing atelier combining:
 - **Focused Editorial Flow:** A centered 760px line measure, organic color palette, and fluid typography.
 - **Secure Identity & Authentication (Phase 2):** Argon2id password hashing, stateless HS256 JWT bearer tokens, and automated secret management.
-- **Workspace Dashboard & Document Lifecycle (Phase 3):** Dedicated atelier dashboard, instant document creation, title renaming, case-insensitive search, multi-field sorting, grid/list view toggling, and soft-delete trash recovery.
-- **Universal Ingestion:** Single-click import for Word (`.docx`), Markdown (`.md`), and plain text (`.txt`) up to 10MB *(Phase 5)*.
-- **Resilient Persistence:** 1000ms debounced autosave, manual `Ctrl+S` override, and cloud persistence with Supabase PostgreSQL.
+- **Workspace Dashboard & Lifecycle (Phase 3):** Dedicated atelier dashboard, instant document creation, title renaming, case-insensitive search, multi-field sorting, grid/list view toggling, and soft-delete trash recovery.
+- **Tiptap Rich-Text Editor (Phase 4):** Professional, headless writing canvas with formatting (Bold, Italic, Underline, H1, H2, Paragraph, Bullet Lists, Numbered Lists, Text Alignment, Undo/Redo), 1200ms debounced autosave, manual `Ctrl+S` override, and unsaved changes protection.
+- **Universal Ingestion (Phase 5):** Single-click import for Word (`.docx`), Markdown (`.md`), and plain text (`.txt`) up to 10MB, converting incoming content into structured Tiptap JSON.
 - **Clear Collaboration:** Role-based access control (Owner, Editor, Viewer) backed by partitioned "My Documents" and "Shared With Me" views *(Phase 6)*.
 
 ---
@@ -23,6 +23,7 @@ Draftly provides a calm, high-velocity writing atelier combining:
 ### Frontend
 - **Framework:** Next.js 14+ (App Router)
 - **Language:** TypeScript 5+
+- **Rich Text Editor:** Tiptap v2 (`@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-underline`, `@tiptap/extension-text-align`, `@tiptap/extension-placeholder`)
 - **Styling:** Tailwind CSS 3.4+ (Custom Draftly Editorial Theme)
 - **State & Context:** React Context (`AuthContext` with JWT persistence & re-validation)
 - **Icons:** Lucide React
@@ -30,10 +31,12 @@ Draftly provides a calm, high-velocity writing atelier combining:
 
 ### Backend
 - **Framework:** Python 3.11+ / FastAPI
+- **File Ingestion:** `python-docx` for `.docx` parsing, custom AST line parser for `.md`, and streaming text handler for `.txt`
+- **Multipart Form Uploads:** `python-multipart`
 - **Password Hashing:** Argon2id (`argon2-cffi`)
 - **Token Security:** PyJWT (HS256 signed bearer tokens with 30-minute expiry)
 - **ORM & Data Layer:** SQLAlchemy 2.0+ (Async engine via `asyncpg`)
-- **Database Migrations:** Alembic 1.13+ (Multi-revision dialect-aware migrations)
+- **Database Migrations:** Alembic 1.13+
 - **Configuration:** Pydantic Settings v2 & `python-dotenv`
 - **Testing:** Pytest, pytest-asyncio, HTTPX, in-memory `aiosqlite`
 - **Deployment Target:** Render
@@ -64,15 +67,20 @@ draftly/
 │       │   ├── register/
 │       │   │   └── page.tsx     # Registration & instant auto-login
 │       │   ├── dashboard/
-│       │   │   └── page.tsx     # Phase 3 Workspace Dashboard
+│       │   │   └── page.tsx     # Phase 3/4/5 Workspace Dashboard
 │       │   └── documents/
 │       │       └── [id]/
-│       │           └── page.tsx # Phase 3 Document Detail & Preview Page
-│       ├── context/
-│       │   └── AuthContext.tsx  # Global authentication context & token manager
+│       │           └── page.tsx # Phase 4 Tiptap Document Editor & Live Canvas
 │       ├── components/
 │       │   ├── Navbar.tsx       # Branded top navigation header with user avatar
-│       │   └── StatusIndicator.tsx # Live backend & DB telemetry component
+│       │   ├── StatusIndicator.tsx # Live backend & DB telemetry component
+│       │   ├── dashboard/
+│       │   │   └── ImportModal.tsx # Drag-and-drop file import modal (.txt, .md, .docx)
+│       │   └── editor/
+│       │       ├── EditorToolbar.tsx # Clean formatting toolbar (H1, H2, Bold, Lists, Align)
+│       │       └── DraftlyEditor.tsx # Tiptap editor engine with debounced autosave
+│       ├── context/
+│       │   └── AuthContext.tsx  # Global authentication context & token manager
 │       └── lib/
 │           └── config.ts        # Frontend API client, document models, & endpoints
 └── backend/                     # FastAPI Application
@@ -104,141 +112,71 @@ draftly/
     │   │   └── document.py      # Document CRUD and list response schemas
     │   ├── services/
     │   │   ├── __init__.py
-    │   │   ├── auth_service.py  # User auth, registration, & token dependencies
-    │   │   └── document_service.py # Document CRUD, search, and trash management
+    │   │   ├── auth_service.py     # User auth, registration, & token dependencies
+    │   │   ├── document_service.py # Document CRUD, search, and trash management
+    │   │   └── import_service.py   # Multi-format parser (.txt, .md, .docx -> Tiptap JSON)
     │   └── api/
     │       └── v1/
     │           ├── api.py       # API v1 router mounting
     │           └── endpoints/
     │               ├── health.py    # Health check and database diagnostics
     │               ├── auth.py      # User registration, login, and profile
-    │               └── documents.py # Workspace document management endpoints
+    │               └── documents.py # Document management & import endpoints
     └── tests/
         ├── __init__.py
         ├── conftest.py          # In-memory async SQLite test harness
         ├── test_health.py       # Health check & CORS test suite
         ├── test_auth.py         # Authentication & security test suite
-        └── test_documents.py    # Phase 3 Document CRUD, search & isolation tests
+        ├── test_documents.py    # Document CRUD, search & isolation tests
+        └── test_import.py       # File import (.txt, .md, .docx) & editor content tests
 ```
 
 ---
 
-## 4. Database Schema
+## 4. Phase 4: Document Editor Architecture
 
-### `users` Table
-| Column | Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| `id` | UUID | Primary Key | Platform-independent UUID primary key |
-| `username` | VARCHAR(100) | NOT NULL, INDEX | Display username |
-| `email` | VARCHAR(320) | NOT NULL, UNIQUE, INDEX | Normalized lower-case user email |
-| `hashed_password` | VARCHAR(255) | NOT NULL | Argon2id password hash |
-| `is_active` | BOOLEAN | NOT NULL, DEFAULT true | Account status flag |
-| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Account creation timestamp |
-| `updated_at` | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Last update timestamp |
+### 1. Tiptap Rich Text Engine
+The writing atelier uses Tiptap v2 headless editor configured with:
+- **StarterKit:** Paragraphs, Headings (H1, H2, H3), Bullet Lists, Ordered Lists, ListItem, Undo, Redo, Blockquote.
+- **Underline:** Semantic underline formatting (`@tiptap/extension-underline`).
+- **TextAlign:** Left, center, and right text alignment (`@tiptap/extension-text-align`).
+- **Placeholder:** Contextual editor invitation prompt (`@tiptap/extension-placeholder`).
 
-### `documents` Table (Phase 3)
-| Column | Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| `id` | UUID | Primary Key | Platform-independent UUID primary key |
-| `title` | VARCHAR(255) | NOT NULL, DEFAULT 'Untitled Document', INDEX | Document title |
-| `content` | JSONB / JSON | NOT NULL, DEFAULT '{}' | Structured document content |
-| `owner_id` | UUID | NOT NULL, FK(`users.id`), INDEX | Document author & owner ID |
-| `is_deleted` | BOOLEAN | NOT NULL, DEFAULT false, INDEX | Soft deletion flag (Trash) |
-| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Document creation timestamp |
-| `updated_at` | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Last modification timestamp |
-
-#### Indexes
-- `ix_documents_id`: Primary lookup index.
-- `ix_documents_owner_id`: High-speed owner filtering.
-- `ix_documents_title`: Case-insensitive title searching.
-- `ix_documents_is_deleted`: Partitioning active workspace documents vs trash items.
-- `ix_documents_owner_deleted_updated`: Composite index on `(owner_id, is_deleted, updated_at)` for instant dashboard pagination.
+### 2. Autosave & Document Persistence
+- **1200ms Debounce:** Saves to `PATCH /api/v1/documents/{id}` automatically after the user pauses typing.
+- **Conflict Prevention:** Uses in-flight refs (`isSavingRef`) to guarantee sequential, non-overlapping saves.
+- **Manual Save (`Ctrl+S` / `Cmd+S`):** Intercepts keyboard shortcuts on the editor and window to trigger an immediate save.
+- **Save Status Telemetry:** Live indicators for `Saved`, `Saving...`, `Unsaved edits`, and `Save issue`.
+- **Word & Character Counters:** Live counter calculating word and character metrics.
+- **Unsaved Changes Navigation Guard:** Binds to `beforeunload` to prevent accidental data loss.
 
 ---
 
-## 5. API Endpoints
+## 5. Phase 5: File Import Architecture
 
-### Workspace Documents API (`/api/v1/documents`)
+### 1. Supported Formats & Conversion
+- **Plain Text (`.txt`):** Extracted into structured Tiptap paragraphs.
+- **Markdown (`.md`):** Custom parser supporting `# H1`, `## H2`, `### H3`, `**bold**`, `*italic*`, `<u>underline</u>`, bullet lists (`- item`), and ordered lists (`1. item`).
+- **Microsoft Word (`.docx`):** Parsed via `python-docx`, mapping Heading 1/2 styles to Tiptap headings, bullet/number styles to lists, and runs to bold, italic, and underline marks.
 
-All document endpoints enforce **Strict Ownership Isolation**: unauthenticated requests receive `401 Unauthorized`, and attempting to access another user's document returns `404 Not Found` to prevent resource enumeration.
+### 2. Validation & Security
+- **Max File Size:** 10 MB (files > 10 MB rejected with `413 Payload Too Large`).
+- **Unsupported Formats:** Files other than `.txt`, `.md`, `.docx` rejected with `400 Bad Request`.
+- **Empty Files:** 0-byte uploads rejected with `400 Bad Request`.
+- **Corrupt DOCX Protection:** Rejects invalid zip payloads with descriptive error messaging.
+- **Title Derivation:** Document title is automatically derived from the uploaded filename (excluding extension).
 
-| Method | Endpoint | Query Parameters | Description | Status Code |
-| :--- | :--- | :--- | :--- | :--- |
-| `GET` | `/api/v1/documents` | `search`, `is_deleted`, `sort_by`, `sort_order` | List documents owned by user with live counts | `200 OK` |
-| `POST` | `/api/v1/documents` | — | Create a new document in the workspace | `201 Created` |
-| `GET` | `/api/v1/documents/{id}` | — | Retrieve complete document details by ID | `200 OK` |
-| `PATCH` | `/api/v1/documents/{id}` | — | Update document title or restore from trash | `200 OK` |
-| `DELETE` | `/api/v1/documents/{id}` | `permanent` (boolean) | Soft-delete to trash or permanently purge | `200 OK` |
-
-#### Example: List Documents Response
-```json
-{
-  "items": [
-    {
-      "id": "123e4567-e89b-12d3-a456-426614174000",
-      "title": "Editorial Atelier Specification",
-      "content": { "type": "doc", "content": [] },
-      "owner_id": "987fcdeb-51a2-43f7-9012-345678901234",
-      "is_deleted": false,
-      "created_at": "2026-11-01T00:15:00Z",
-      "updated_at": "2026-11-01T00:18:00Z"
-    }
-  ],
-  "total": 1,
-  "active_count": 1,
-  "trash_count": 0
-}
-```
+### 3. Import API Endpoint
+- **Endpoint:** `POST /api/v1/documents/import`
+- **Authentication:** Required (Bearer JWT).
+- **Body:** Multipart form data (`file: UploadFile`).
+- **Response:** `201 Created` with full `DocumentResponse` object.
 
 ---
 
-## 6. Workspace Dashboard Features
+## 6. Running Automated Tests
 
-1. **Editorial Atelier Sidebar:**
-   - **Overview:** Dynamic telemetry cards showing active count, trash count, and recent activity.
-   - **My Documents:** Primary workspace view with live count pill.
-   - **Shared With Me:** Clear UI placeholder marked for *Phase 6: Document Sharing*.
-   - **Starred:** Clean UI placeholder marked for future releases.
-   - **Trash:** Dedicated soft-deletion view with document restoration and permanent purge controls.
-   - **Settings:** Atelier account profile and session overview.
-2. **Instant Document Creation:**
-   - "Create New Document" button opens an editorial modal with optional title (defaulting to "Untitled Document").
-   - Automatically saves to the database and navigates to the dedicated document route (`/documents/[id]`).
-3. **Live Search & Multi-Field Sorting:**
-   - Case-insensitive search filtering across document titles.
-   - Sort by: "Recently Modified", "Oldest First", "Alphabetical (A-Z)", and "Alphabetical (Z-A)".
-4. **Adaptive View Modes:**
-   - Switch between **Grid View** (rich cards with relative dates, status badges, and 3-dot action menus) and **List View** (compact rows for power writers).
-5. **Document Detail & Preview Canvas (`/documents/[id]`):**
-   - In-place title renaming directly in the sticky top header.
-   - Centered 760px line measure matching the editorial atelier specifications.
-   - Phase 4 teaser card detailing the upcoming Tiptap rich-text canvas and autosave engine.
-
----
-
-## 7. Supabase Database Integration & Migrations
-
-To run migrations against your Supabase PostgreSQL database:
-
-1. Configure `backend/.env` with your PostgreSQL URI:
-   ```env
-   DATABASE_URL=postgresql+asyncpg://postgres:[PASSWORD]@[HOST]:5432/postgres?ssl=require
-   ```
-2. Apply all migrations up to the latest head:
-   ```bash
-   cd backend
-   .\venv\Scripts\alembic.exe upgrade head
-   ```
-
-Alembic will sequentially execute:
-- `0001_create_users_table`: Instantiates the `users` table and indexes.
-- `0002_create_documents_table`: Instantiates the `documents` table, foreign keys, and compound indexes.
-
----
-
-## 8. Running Automated Tests
-
-Run the full automated test suite (24 tests covering auth, health, documents, search, and isolation):
+Run the complete 32-test suite covering auth, diagnostics, document CRUD, isolation, file imports, and editor persistence:
 
 ```bash
 cd backend
@@ -247,30 +185,38 @@ cd backend
 
 Expected output:
 ```
-tests/test_auth.py::test_argon2_password_hashing PASSED                  [  4%]
-tests/test_auth.py::test_jwt_token_generation_and_validation PASSED      [  8%]
-tests/test_auth.py::test_jwt_expired_token_rejection PASSED              [ 12%]
-tests/test_auth.py::test_successful_registration PASSED                  [ 16%]
-tests/test_auth.py::test_duplicate_email_rejection PASSED                [ 20%]
-tests/test_auth.py::test_successful_login PASSED                         [ 25%]
-tests/test_auth.py::test_incorrect_password_rejection PASSED             [ 29%]
-tests/test_auth.py::test_current_user_endpoint PASSED                    [ 33%]
-tests/test_auth.py::test_unauthorized_access_rejection PASSED            [ 37%]
-tests/test_auth.py::test_invalid_token_rejection PASSED                  [ 41%]
-tests/test_documents.py::test_create_document_default_title PASSED       [ 45%]
-tests/test_documents.py::test_create_document_custom_title PASSED        [ 50%]
-tests/test_documents.py::test_list_and_count_documents PASSED            [ 54%]
-tests/test_documents.py::test_get_document_by_id PASSED                  [ 58%]
-tests/test_documents.py::test_rename_document PASSED                     [ 62%]
-tests/test_documents.py::test_soft_delete_and_restore PASSED             [ 66%]
-tests/test_documents.py::test_permanent_delete PASSED                    [ 70%]
-tests/test_documents.py::test_unauthorized_access_prevention PASSED      [ 75%]
-tests/test_documents.py::test_user_data_isolation PASSED                 [ 79%]
-tests/test_documents.py::test_search_and_sorting PASSED                  [ 83%]
-tests/test_health.py::test_root_endpoint PASSED                          [ 87%]
-tests/test_health.py::test_root_health_endpoint PASSED                   [ 91%]
-tests/test_health.py::test_v1_health_endpoint PASSED                     [ 95%]
-tests/test_health.py::test_cors_headers PASSED                           [100%]
+tests/test_auth.py::test_argon2_password_hashing PASSED                  [  3%]
+tests/test_auth.py::test_jwt_token_generation_and_validation PASSED      [  6%]
+tests/test_auth.py::test_jwt_expired_token_rejection PASSED              [  9%]
+tests/test_auth.py::test_successful_registration PASSED                  [ 12%]
+tests/test_auth.py::test_duplicate_email_rejection PASSED                [ 15%]
+tests/test_auth.py::test_successful_login PASSED                         [ 18%]
+tests/test_auth.py::test_incorrect_password_rejection PASSED             [ 21%]
+tests/test_auth.py::test_current_user_endpoint PASSED                    [ 25%]
+tests/test_auth.py::test_unauthorized_access_rejection PASSED            [ 28%]
+tests/test_auth.py::test_invalid_token_rejection PASSED                  [ 31%]
+tests/test_documents.py::test_create_document_default_title PASSED       [ 34%]
+tests/test_documents.py::test_create_document_custom_title PASSED        [ 37%]
+tests/test_documents.py::test_list_and_count_documents PASSED            [ 40%]
+tests/test_documents.py::test_get_document_by_id PASSED                  [ 43%]
+tests/test_documents.py::test_rename_document PASSED                     [ 46%]
+tests/test_documents.py::test_soft_delete_and_restore PASSED             [ 50%]
+tests/test_documents.py::test_permanent_delete PASSED                    [ 53%]
+tests/test_documents.py::test_unauthorized_access_prevention PASSED      [ 56%]
+tests/test_documents.py::test_user_data_isolation PASSED                 [ 59%]
+tests/test_documents.py::test_search_and_sorting PASSED                  [ 62%]
+tests/test_health.py::test_root_endpoint PASSED                          [ 65%]
+tests/test_health.py::test_root_health_endpoint PASSED                   [ 68%]
+tests/test_health.py::test_v1_health_endpoint PASSED                     [ 71%]
+tests/test_health.py::test_cors_headers PASSED                           [ 75%]
+tests/test_import.py::test_import_txt_file PASSED                        [ 78%]
+tests/test_import.py::test_import_markdown_file PASSED                   [ 81%]
+tests/test_import.py::test_import_docx_file PASSED                       [ 84%]
+tests/test_import.py::test_import_unsupported_file_rejection PASSED      [ 87%]
+tests/test_import.py::test_import_empty_file_rejection PASSED            [ 90%]
+tests/test_import.py::test_import_malformed_docx_rejection PASSED        [ 93%]
+tests/test_import.py::test_import_unauthorized_rejection PASSED          [ 96%]
+tests/test_import.py::test_editor_patch_and_get_content PASSED           [100%]
 
-============================= 24 passed in 3.43s ==============================
+============================= 32 passed in 4.23s ==============================
 ```

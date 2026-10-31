@@ -362,3 +362,4 @@ async def test_search_and_sorting(client: AsyncClient):
     sort_desc = await client.get("/api/v1/documents?sort_by=title&sort_order=desc", headers=headers)
     titles_desc = [d["title"] for d in sort_desc.json()["items"]]
     assert titles_desc == ["Delta Engineering Specs", "Beta Quarterly Report", "Alpha Roadmap 2027"]
+

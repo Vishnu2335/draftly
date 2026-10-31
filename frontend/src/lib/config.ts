@@ -148,7 +148,7 @@ export async function apiGetDocumentById(
 export async function apiUpdateDocument(
   token: string,
   documentId: string,
-  payload: { title?: string; is_deleted?: boolean }
+  payload: { title?: string; content?: any; is_deleted?: boolean }
 ): Promise<DocumentItem> {
   const res = await fetch(`${API_ENDPOINTS.DOCUMENTS}/${documentId}`, {
     method: "PATCH",
@@ -162,6 +162,29 @@ export async function apiUpdateDocument(
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err?.error?.message || err?.detail || `Failed to update document (${res.status})`);
+  }
+
+  return await res.json();
+}
+
+export async function apiImportDocument(
+  token: string,
+  file: File
+): Promise<DocumentItem> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`${API_ENDPOINTS.DOCUMENTS}/import`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || err?.detail || `Failed to import document (${res.status})`);
   }
 
   return await res.json();

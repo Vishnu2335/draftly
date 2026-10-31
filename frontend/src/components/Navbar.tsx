@@ -22,7 +22,7 @@ export default function Navbar() {
                 Draftly
               </span>
               <span className="bg-sage/20 text-sage text-[10px] font-semibold uppercase px-2 py-0.5 rounded border border-sage/30">
-                Phase 3
+                Phase 4 & 5
               </span>
             </div>
             <p className="text-[10px] text-warmStone-light/60 tracking-wider uppercase font-mono hidden sm:block">

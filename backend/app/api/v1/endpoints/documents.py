@@ -1,6 +1,6 @@
 import uuid
 from typing import Any, Dict, Optional
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -19,6 +19,7 @@ from app.services.document_service import (
     list_documents,
     update_document,
 )
+from app.services.import_service import process_document_import
 
 router = APIRouter()
 
@@ -69,6 +70,27 @@ async def create_new_document(
         db=db,
         user_id=current_user.id,
         req=req,
+    )
+    return DocumentResponse.model_validate(doc)
+
+
+@router.post(
+    "/import",
+    response_model=DocumentResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Import external document",
+    description="Upload and import a .txt, .md, or .docx file (up to 10MB) into Tiptap structured document content.",
+)
+async def import_document(
+    file: UploadFile = File(..., description="Document file to import (.txt, .md, .docx)"),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentResponse:
+    title, content = await process_document_import(file)
+    doc = await create_document(
+        db=db,
+        user_id=current_user.id,
+        req=DocumentCreateRequest(title=title, content=content),
     )
     return DocumentResponse.model_validate(doc)
 
@@ -130,3 +152,4 @@ async def delete_document_by_id(
         user_id=current_user.id,
         permanent=permanent,
     )
+

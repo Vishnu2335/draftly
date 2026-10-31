@@ -34,9 +34,11 @@ import {
   Sparkles,
   Star,
   Trash2,
+  UploadCloud,
   User,
   X,
 } from "lucide-react";
+import ImportModal from "@/components/dashboard/ImportModal";
 
 type TabView = "my-docs" | "overview" | "shared" | "starred" | "trash" | "settings";
 type SortOption = "updated_desc" | "updated_asc" | "title_asc" | "title_desc";
@@ -64,6 +66,9 @@ export default function DashboardPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
   const [newDocTitle, setNewDocTitle] = useState<string>("");
   const [creatingDoc, setCreatingDoc] = useState<boolean>(false);
+
+  // Import Modal state
+  const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
 
   // Rename Modal state
   const [renamingDoc, setRenamingDoc] = useState<DocumentItem | null>(null);
@@ -254,7 +259,7 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center gap-2 text-xs font-mono text-sage-dark uppercase tracking-wider mb-1">
             <Sparkles className="w-3.5 h-3.5 text-terracotta" />
-            <span>Workspace Atelier • Phase 3</span>
+            <span>Workspace Atelier • Phase 4 & 5</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-serif font-bold text-forest tracking-tight">
             Welcome back, {user.username}
@@ -265,6 +270,15 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-ivory hover:bg-warmStone/50 text-forest border border-warmStone text-sm font-semibold transition-all active:scale-95 shadow-2xs"
+            title="Import .txt, .md, or .docx file"
+          >
+            <UploadCloud className="w-4 h-4 text-sage-dark" />
+            <span>Import Document</span>
+          </button>
+
           <button
             onClick={() => setIsCreateModalOpen(true)}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-terracotta hover:bg-terracotta-dark text-white text-sm font-semibold transition-all shadow-sm active:scale-95"
@@ -1091,6 +1105,19 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+      {/* Import Modal */}
+      {token && (
+        <ImportModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+          token={token}
+          onImportSuccess={(importedDoc) => {
+            setIsImportModalOpen(false);
+            router.push(`/documents/${importedDoc.id}`);
+          }}
+        />
+      )}
     </div>
   );
 }
+

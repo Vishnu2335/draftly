@@ -10,22 +10,18 @@ import {
   apiUpdateDocument,
   DocumentItem,
 } from "@/lib/config";
+import DraftlyEditor, { SaveStatus } from "@/components/editor/DraftlyEditor";
 import {
   AlertCircle,
   ArrowLeft,
   Check,
   Clock,
-  Database,
   Edit3,
-  FileText,
   Loader2,
-  Lock,
   RotateCcw,
   ShieldCheck,
-  Sparkles,
   Trash2,
   User,
-  X,
 } from "lucide-react";
 
 export default function DocumentDetailPage() {
@@ -42,6 +38,9 @@ export default function DocumentDetailPage() {
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   const [titleInput, setTitleInput] = useState<string>("");
   const [savingTitle, setSavingTitle] = useState<boolean>(false);
+
+  // Editor telemetry state
+  const [editorSaveStatus, setEditorSaveStatus] = useState<SaveStatus>("saved");
 
   // Trash action state
   const [deleting, setDeleting] = useState<boolean>(false);
@@ -135,8 +134,6 @@ export default function DocumentDetailPage() {
         month: "short",
         day: "numeric",
         year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
       });
     } catch {
       return "Recently";
@@ -182,9 +179,9 @@ export default function DocumentDetailPage() {
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col bg-ivory">
       {/* Top Document Header Bar */}
-      <header className="bg-white border-b border-warmStone/70 sticky top-16 z-30 px-4 sm:px-8 py-3.5">
+      <header className="bg-white border-b border-warmStone/70 sticky top-16 z-30 px-4 sm:px-8 py-3.5 shadow-2xs">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Left: Back & Title Edit */}
+          {/* Left: Back & Editable Title */}
           <div className="flex items-center gap-3 min-w-0">
             <Link
               href="/dashboard"
@@ -257,9 +254,32 @@ export default function DocumentDetailPage() {
               </div>
             ) : (
               <>
-                <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sage/20 text-sage-dark text-xs font-mono font-medium">
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Metadata Saved</span>
+                {/* Save status badge */}
+                <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-ivory border border-warmStone text-xs font-mono">
+                  {editorSaveStatus === "saving" && (
+                    <>
+                      <Loader2 className="w-3 h-3 text-terracotta animate-spin" />
+                      <span className="text-terracotta font-medium">Autosaving...</span>
+                    </>
+                  )}
+                  {editorSaveStatus === "saved" && (
+                    <>
+                      <Check className="w-3 h-3 text-sage-dark" />
+                      <span className="text-sage-dark font-medium">All Changes Saved</span>
+                    </>
+                  )}
+                  {editorSaveStatus === "unsaved" && (
+                    <>
+                      <Clock className="w-3 h-3 text-forest/40" />
+                      <span className="text-forest/60">Unsaved edits</span>
+                    </>
+                  )}
+                  {editorSaveStatus === "error" && (
+                    <>
+                      <AlertCircle className="w-3 h-3 text-red-600" />
+                      <span className="text-red-600 font-medium">Save issue</span>
+                    </>
+                  )}
                 </div>
 
                 <button
@@ -277,10 +297,10 @@ export default function DocumentDetailPage() {
         </div>
       </header>
 
-      {/* Main Preview Container */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8">
+      {/* Main Writing Canvas */}
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Document Metadata Bar */}
-        <div className="bg-white rounded-2xl p-4 border border-warmStone/70 mb-8 flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-forest/70 shadow-xs">
+        <div className="bg-white rounded-2xl p-3.5 border border-warmStone/70 mb-6 flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-forest/70 shadow-2xs">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-sage-dark" />
@@ -289,63 +309,24 @@ export default function DocumentDetailPage() {
             <span>•</span>
             <span className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-forest/50" />
-              <span>Last Modified: {formatDate(document.updated_at)}</span>
+              <span>Created {formatDate(document.created_at)}</span>
             </span>
           </div>
           <div className="flex items-center gap-2 text-[11px] text-forest/50">
             <ShieldCheck className="w-3.5 h-3.5 text-sage-dark" />
-            <span>Isolated Cloud Record: {document.id.slice(0, 8)}...</span>
+            <span>Tiptap Atelier • Supabase Cloud Verified</span>
           </div>
         </div>
 
-        {/* Focused 760px Editorial Canvas Atelier */}
-        <div className="max-w-[760px] mx-auto bg-white rounded-3xl p-8 sm:p-14 border border-warmStone shadow-sm space-y-8 min-h-[550px]">
-          {/* Document Title Header */}
-          <div className="border-b border-warmStone/60 pb-6">
-            <h1 className="text-3xl sm:text-4xl font-serif font-bold text-forest leading-tight">
-              {document.title}
-            </h1>
-            <p className="text-xs text-forest/40 font-mono mt-2">
-              Created {formatDate(document.created_at)}
-            </p>
-          </div>
-
-          {/* Phase 4 Editor Teaser / Placeholder Card */}
-          <div className="p-6 rounded-2xl bg-ivory border border-sage/40 space-y-4">
-            <div className="flex items-center gap-2.5 text-sage-dark">
-              <Sparkles className="w-5 h-5 text-terracotta" />
-              <h3 className="font-serif font-bold text-forest text-base">
-                Draftly Editorial Atelier — Phase 4 Rich-Text Canvas
-              </h3>
-            </div>
-
-            <p className="text-sm text-forest/80 font-light leading-relaxed">
-              This document has been securely instantiated in your workspace database. The rich-text editing engine (built with Tiptap, headless Markdown shortcuts, clean typography, and 1000ms debounced autosave) is scheduled for implementation in <strong>Phase 4: Document Editor</strong>.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs font-mono text-forest/70">
-              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-white border border-warmStone/60">
-                <Check className="w-4 h-4 text-sage-dark shrink-0" />
-                <span>Phase 3: Database Model & Metadata Active</span>
-              </div>
-              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-white border border-warmStone/60">
-                <Check className="w-4 h-4 text-sage-dark shrink-0" />
-                <span>Phase 3: Soft-Delete & Rename Active</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Structured Document Content Dump / Preview */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-xs font-mono text-forest/50">
-              <span>Structured Content Payload</span>
-              <span>JSON Schema v1</span>
-            </div>
-            <pre className="p-4 rounded-xl bg-forest-dark text-warmStone-light font-mono text-xs overflow-x-auto leading-relaxed">
-              {JSON.stringify(document.content, null, 2)}
-            </pre>
-          </div>
-        </div>
+        {/* Live Tiptap Rich-Text Editor */}
+        {token && (
+          <DraftlyEditor
+            documentId={document.id}
+            initialContent={document.content}
+            token={token}
+            onStatusChange={setEditorSaveStatus}
+          />
+        )}
       </main>
     </div>
   );

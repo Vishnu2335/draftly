@@ -15,6 +15,7 @@ build/
 dist/
 .npm
 .eslintcache
+*.tsbuildinfo
 
 # Python / Backend
 __pycache__/

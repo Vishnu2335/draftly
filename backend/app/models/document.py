@@ -68,3 +68,4 @@ class Document(Base):
 
     def __repr__(self) -> str:
         return f"<Document id={self.id} title='{self.title}' owner_id={self.owner_id} is_deleted={self.is_deleted}>"
+

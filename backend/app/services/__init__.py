@@ -12,6 +12,8 @@ from app.services.document_service import (
     update_document,
 )
 
+from app.services.import_service import process_document_import
+
 __all__ = [
     "register_user",
     "authenticate_user",
@@ -22,4 +24,5 @@ __all__ = [
     "list_documents",
     "update_document",
     "delete_document",
+    "process_document_import",
 ]

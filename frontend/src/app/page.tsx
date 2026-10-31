@@ -25,7 +25,7 @@ export default function Home() {
         <div className="max-w-3xl relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-terracotta/20 border border-terracotta/40 text-terracotta-light text-xs font-semibold uppercase tracking-wider mb-6">
             <Sparkles className="w-3.5 h-3.5 text-terracotta" />
-            Phase 3: Workspace Dashboard Active
+            Phase 4 & 5: Document Editor & File Import Active
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-bold font-serif tracking-tight text-white mb-4 leading-tight">

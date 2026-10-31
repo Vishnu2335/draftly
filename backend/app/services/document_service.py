@@ -116,12 +116,15 @@ async def update_document(
     user_id: uuid.UUID,
     req: DocumentUpdateRequest,
 ) -> Document:
-    """Update document metadata, title, or soft deletion status."""
+    """Update document metadata, title, content, or soft deletion status."""
     document = await get_document(db, document_id, user_id)
 
     if req.title is not None:
         cleaned_title = req.title.strip()
         document.title = cleaned_title if cleaned_title else "Untitled Document"
+
+    if req.content is not None:
+        document.content = req.content
 
     if req.is_deleted is not None:
         document.is_deleted = req.is_deleted
@@ -161,3 +164,4 @@ async def delete_document(
         "id": str(document_id),
         "permanent": False,
     }
+
