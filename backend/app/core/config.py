@@ -105,26 +105,33 @@ class Settings(BaseSettings):
 
     @property
     def async_database_url(self) -> Optional[str]:
-        """Convert standard postgres connection string to asyncpg compatible format."""
+        """Convert standard postgres connection string to asyncpg compatible format, or provide local SQLite in development."""
         if not self.DATABASE_URL:
+            if self.ENVIRONMENT == "development":
+                return "sqlite+aiosqlite:///d:/antigravityyy/Draftly/backend/draftly.db"
             return None
-        url = self.DATABASE_URL.strip()
+
+        url = self.DATABASE_URL.strip().strip('"').strip("'")
         if url.startswith("sqlite"):
             return url
-
-        # Verify it resembles a database URI
-        if not (url.startswith("postgres://") or url.startswith("postgresql://")):
-            return None
 
         # Normalise driver prefix for SQLAlchemy asyncpg
         if url.startswith("postgres://"):
             url = "postgresql+asyncpg://" + url[len("postgres://"):]
         elif url.startswith("postgresql://") and not url.startswith("postgresql+asyncpg://"):
             url = "postgresql+asyncpg://" + url[len("postgresql://"):]
-        # asyncpg uses ssl parameter instead of sslmode
-        if "sslmode=" in url:
-            url = url.replace("sslmode=require", "ssl=require").replace("sslmode=prefer", "ssl=prefer")
-        return url
+
+        if url.startswith("postgresql+asyncpg://"):
+            if "sslmode=" in url:
+                url = url.replace("sslmode=require", "ssl=require").replace("sslmode=prefer", "ssl=prefer")
+            return url
+
+        # If DATABASE_URL is not a valid Postgres URI (e.g. Supabase API secret key like sb_secret_...)
+        # In development mode, fallback to local persistent SQLite so local development works seamlessly
+        if self.ENVIRONMENT == "development":
+            return "sqlite+aiosqlite:///d:/antigravityyy/Draftly/backend/draftly.db"
+
+        return None
 
     model_config = SettingsConfigDict(
         env_file=".env",

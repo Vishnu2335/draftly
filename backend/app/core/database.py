@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import declarative_base
 
+from fastapi import HTTPException, status
 from app.core.config import settings
 
 logger = logging.getLogger("draftly.database")
@@ -58,12 +59,14 @@ def get_engine() -> Optional[AsyncEngine]:
     return _async_engine
 
 
-async def get_db() -> AsyncGenerator[Optional[AsyncSession], None]:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency that yields an async database session."""
     engine = get_engine()
     if not engine or not _async_session_factory:
-        yield None
-        return
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database service is unavailable. Please verify database credentials in backend/.env.",
+        )
 
     async with _async_session_factory() as session:
         try:
@@ -77,8 +80,8 @@ async def get_db() -> AsyncGenerator[Optional[AsyncSession], None]:
 
 
 async def check_database_connection() -> Dict[str, Any]:
-    """Verify Supabase PostgreSQL connectivity and latency."""
-    if not settings.DATABASE_URL:
+    """Verify Supabase PostgreSQL or local development database connectivity and latency."""
+    if not settings.DATABASE_URL and settings.ENVIRONMENT != "development":
         return {
             "status": "unconfigured",
             "provider": "Supabase PostgreSQL",
@@ -104,6 +107,8 @@ async def check_database_connection() -> Dict[str, Any]:
         }
 
     start_time = time.perf_counter()
+    is_sqlite = "sqlite" in (settings.async_database_url or "")
+
     try:
         async with engine.connect() as conn:
             result = await conn.execute(text("SELECT 1"))
@@ -111,10 +116,15 @@ async def check_database_connection() -> Dict[str, Any]:
             latency = (time.perf_counter() - start_time) * 1000
 
             if val == 1:
+                msg = (
+                    "Connected to local SQLite database for development. Live Supabase PostgreSQL connection is ready whenever a PostgreSQL URI (postgresql+asyncpg://...) is provided in backend/.env."
+                    if is_sqlite
+                    else "Live connection to Supabase PostgreSQL verified."
+                )
                 return {
                     "status": "connected",
                     "provider": "Supabase PostgreSQL",
-                    "message": "Live connection to Supabase PostgreSQL verified.",
+                    "message": msg,
                     "latency_ms": round(latency, 2),
                 }
             else:

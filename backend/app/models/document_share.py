@@ -57,3 +57,4 @@ class DocumentShare(Base):
 
     def __repr__(self) -> str:
         return f"<DocumentShare id={self.id} document_id={self.document_id} user_id={self.user_id} role={self.role}>"
+

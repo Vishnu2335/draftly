@@ -72,3 +72,4 @@ class SharedWithMeListResponse(BaseModel):
 
     items: List[SharedWithMeItem]
     total: int
+
