@@ -24,7 +24,12 @@ async def test_root_health_endpoint():
         assert data["service"] == "Draftly"
         assert "database" in data
         assert data["database"]["provider"] == "Supabase PostgreSQL"
-        assert data["database"]["status"] in ["connected", "unconfigured", "disconnected"]
+        assert data["database"]["status"] in [
+            "connected",
+            "unconfigured",
+            "disconnected",
+            "pending_configuration",
+        ]
 
 
 @pytest.mark.asyncio
@@ -36,6 +41,12 @@ async def test_v1_health_endpoint():
         assert data["status"] == "healthy"
         assert data["version"] == "1.0.0"
         assert "database" in data
+        assert data["database"]["status"] in [
+            "connected",
+            "unconfigured",
+            "disconnected",
+            "pending_configuration",
+        ]
 
 
 @pytest.mark.asyncio
@@ -50,4 +61,3 @@ async def test_cors_headers():
         )
         assert response.status_code == 200
         assert "access-control-allow-origin" in response.headers
-

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "Draftly — Modern Document Workspace",
@@ -28,21 +29,22 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col bg-ivory text-charcoal">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <footer className="border-t border-borderTone bg-warmStone-light/40 py-8 text-center text-xs text-mutedText">
-          <div className="max-w-6xl mx-auto px-4">
-            <p className="font-serif font-bold text-forest text-sm mb-1">
-              Draftly Workspace Core
-            </p>
-            <p>Phase 1: Project Foundation • Next.js • FastAPI • Supabase PostgreSQL</p>
-            <p className="mt-2 text-[11px] font-mono text-mutedText/80">
-              Vercel (Frontend) • Render (Backend) • Monorepo Architecture
-            </p>
-          </div>
-        </footer>
+        <AuthProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <footer className="border-t border-borderTone bg-warmStone-light/40 py-8 text-center text-xs text-mutedText">
+            <div className="max-w-6xl mx-auto px-4">
+              <p className="font-serif font-bold text-forest text-sm mb-1">
+                Draftly Workspace Core
+              </p>
+              <p>Phase 2: Authentication &amp; User Management • Next.js • FastAPI • Supabase PostgreSQL</p>
+              <p className="mt-2 text-[11px] font-mono text-mutedText/80">
+                Argon2 Password Hashing • HS256 JWT Authorization • Protected Endpoints
+              </p>
+            </div>
+          </footer>
+        </AuthProvider>
       </body>
     </html>
   );
 }
-

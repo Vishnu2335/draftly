@@ -1,7 +1,66 @@
 import json
+import os
+import secrets
+from pathlib import Path
 from typing import List, Optional, Union
-from pydantic import AnyHttpUrl, field_validator
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _ensure_env_file_and_jwt_secret() -> str:
+    """Ensure backend/.env exists and contains a cryptographically secure JWT secret."""
+    env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+    existing_secret = None
+    lines: List[str] = []
+
+    if env_path.exists():
+        try:
+            with open(env_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+            for line in lines:
+                stripped = line.strip()
+                if stripped.startswith("JWT_SECRET_KEY=") and not stripped.startswith("#"):
+                    val = stripped.split("=", 1)[1].strip().strip('"').strip("'")
+                    if len(val) >= 32:
+                        existing_secret = val
+                        break
+        except Exception:
+            pass
+
+    if existing_secret:
+        return existing_secret
+
+    # Generate at least 32 bytes of secure random material (token_urlsafe(32) yields ~43 chars)
+    new_secret = secrets.token_urlsafe(32)
+
+    # Persist into .env file while preserving existing settings
+    has_jwt_line = False
+    new_lines = []
+    for line in lines:
+        if line.strip().startswith("JWT_SECRET_KEY="):
+            new_lines.append(f'JWT_SECRET_KEY="{new_secret}"\n')
+            has_jwt_line = True
+        else:
+            new_lines.append(line)
+
+    if not has_jwt_line:
+        if new_lines and not new_lines[-1].endswith("\n"):
+            new_lines.append("\n")
+        new_lines.append(f'JWT_SECRET_KEY="{new_secret}"\n')
+        new_lines.append('JWT_ALGORITHM="HS256"\n')
+        new_lines.append('ACCESS_TOKEN_EXPIRE_MINUTES=30\n')
+
+    try:
+        with open(env_path, "w", encoding="utf-8") as f:
+            f.writelines(new_lines)
+    except Exception:
+        pass
+
+    return new_secret
+
+
+# Initialize or retrieve JWT secret before loading settings
+_initial_jwt_secret = _ensure_env_file_and_jwt_secret()
 
 
 class Settings(BaseSettings):
@@ -36,12 +95,21 @@ class Settings(BaseSettings):
     # Supabase PostgreSQL Database URL
     DATABASE_URL: Optional[str] = None
 
+    # JWT Authentication Configuration
+    JWT_SECRET_KEY: str = _initial_jwt_secret
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
     @property
     def async_database_url(self) -> Optional[str]:
         """Convert standard postgres connection string to asyncpg compatible format."""
         if not self.DATABASE_URL:
             return None
         url = self.DATABASE_URL.strip()
+        # Verify it resembles a database URI
+        if not (url.startswith("postgres://") or url.startswith("postgresql://")):
+            return None
+
         # Normalise driver prefix for SQLAlchemy asyncpg
         if url.startswith("postgres://"):
             url = "postgresql+asyncpg://" + url[len("postgres://"):]
@@ -61,4 +129,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-

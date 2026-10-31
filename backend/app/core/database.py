@@ -75,11 +75,19 @@ async def get_db() -> AsyncGenerator[Optional[AsyncSession], None]:
 
 async def check_database_connection() -> Dict[str, Any]:
     """Verify Supabase PostgreSQL connectivity and latency."""
-    if not settings.DATABASE_URL or not settings.async_database_url:
+    if not settings.DATABASE_URL:
         return {
             "status": "unconfigured",
             "provider": "Supabase PostgreSQL",
             "message": "DATABASE_URL is not configured in environment variables.",
+            "latency_ms": None,
+        }
+
+    if not settings.async_database_url:
+        return {
+            "status": "pending_configuration",
+            "provider": "Supabase PostgreSQL",
+            "message": "Supabase credentials saved. Live database validation is pending until a PostgreSQL URI (postgresql+asyncpg://...) is provided.",
             "latency_ms": None,
         }
 
@@ -122,4 +130,3 @@ async def check_database_connection() -> Dict[str, Any]:
             "message": f"Connection check failed: {str(exc)}",
             "latency_ms": round(latency, 2),
         }
-
