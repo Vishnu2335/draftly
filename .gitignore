@@ -49,6 +49,8 @@ coverage.xml
 .ruff_cache/
 playwright-report/
 test-results/
+*.db
+*.sqlite*
 
 # Operating System & IDEs
 .DS_Store

@@ -44,6 +44,7 @@ class DocumentResponse(BaseModel):
     content: Dict[str, Any]
     owner_id: uuid.UUID
     is_deleted: bool
+    user_role: Optional[str] = "owner"  # "owner" | "editor" | "viewer"
     created_at: datetime
     updated_at: datetime
 

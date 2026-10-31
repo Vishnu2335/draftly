@@ -225,3 +225,4 @@ async def test_editor_patch_and_get_content(client: AsyncClient):
     assert loaded_data["title"] == "Polished Article"
     assert loaded_data["content"]["content"][0]["type"] == "heading"
     assert loaded_data["content"]["content"][0]["content"][0]["text"] == "Draftly Atelier"
+

@@ -8,8 +8,10 @@ import {
   apiCreateDocument,
   apiDeleteDocument,
   apiGetDocuments,
+  apiGetSharedWithMe,
   apiUpdateDocument,
   DocumentItem,
+  SharedWithMeItem,
 } from "@/lib/config";
 import {
   AlertCircle,
@@ -18,6 +20,7 @@ import {
   Clock,
   Edit2,
   ExternalLink,
+  Eye,
   FileText,
   Filter,
   Folder,
@@ -36,6 +39,7 @@ import {
   Trash2,
   UploadCloud,
   User,
+  Users,
   X,
 } from "lucide-react";
 import ImportModal from "@/components/dashboard/ImportModal";
@@ -57,6 +61,11 @@ export default function DashboardPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeCount, setActiveCount] = useState<number>(0);
   const [trashCount, setTrashCount] = useState<number>(0);
+
+  // Shared documents state (Phase 6)
+  const [sharedDocuments, setSharedDocuments] = useState<SharedWithMeItem[]>([]);
+  const [loadingShared, setLoadingShared] = useState<boolean>(false);
+  const [sharedCount, setSharedCount] = useState<number>(0);
 
   // Search & Sorting state
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -88,8 +97,28 @@ export default function DashboardPage() {
   // Fetch documents when tab, search, or sort changes
   useEffect(() => {
     if (!token || !isAuthenticated) return;
-    loadDocuments();
+    if (activeTab === "shared") {
+      loadSharedDocuments();
+    } else {
+      loadDocuments();
+    }
+    // Also keep shared count fresh in background
+    loadSharedDocuments();
   }, [token, isAuthenticated, activeTab, sortBy]);
+
+  const loadSharedDocuments = async () => {
+    if (!token) return;
+    setLoadingShared(true);
+    try {
+      const data = await apiGetSharedWithMe(token);
+      setSharedDocuments(data.items);
+      setSharedCount(data.total);
+    } catch (err: any) {
+      console.error("Failed to load shared documents:", err);
+    } finally {
+      setLoadingShared(false);
+    }
+  };
 
   const loadDocuments = async (overrideSearch?: string) => {
     if (!token) return;
@@ -341,22 +370,30 @@ export default function DashboardPage() {
                 </div>
               </button>
 
-              {/* Shared With Me (Placeholder for Phase 6) */}
+              {/* Shared With Me (Phase 6) */}
               <button
                 onClick={() => setActiveTab("shared")}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   activeTab === "shared"
                     ? "bg-forest text-white"
-                    : "text-forest/70 hover:bg-ivory"
+                    : "text-forest hover:bg-ivory"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <Share2 className="w-4 h-4" />
                   <span>Shared With Me</span>
                 </div>
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-terracotta/15 text-terracotta font-semibold">
-                  Phase 6
-                </span>
+                {sharedCount > 0 && (
+                  <span
+                    className={`text-xs font-mono px-2 py-0.5 rounded-full font-bold ${
+                      activeTab === "shared"
+                        ? "bg-white/20 text-white"
+                        : "bg-sage/20 text-sage-dark"
+                    }`}
+                  >
+                    {sharedCount}
+                  </span>
+                )}
               </button>
 
               {/* Starred (Placeholder) */}
@@ -543,23 +580,102 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Tab 2: Shared With Me (Placeholder) */}
+          {/* Tab 2: Shared With Me (Phase 6) */}
           {activeTab === "shared" && (
-            <div className="bg-white rounded-2xl border border-warmStone/60 p-12 text-center space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-terracotta/10 text-terracotta mx-auto flex items-center justify-center">
-                <Share2 className="w-7 h-7" />
-              </div>
-              <div className="max-w-md mx-auto space-y-2">
-                <h3 className="text-xl font-serif font-bold text-forest">
-                  Document Sharing & Collaboration
-                </h3>
-                <p className="text-sm text-forest/70 font-light leading-relaxed">
-                  Granular role-based access control (Owner, Editor, Viewer) is scheduled for implementation in <strong>Phase 6: Document Sharing</strong>.
-                </p>
-              </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ivory border border-warmStone text-xs font-mono text-forest/70">
-                <Lock className="w-3.5 h-3.5 text-terracotta" />
-                <span>Feature currently under development per approved PRD</span>
+            <div className="space-y-6">
+              <div className="bg-white rounded-2xl border border-warmStone/70 p-6 shadow-2xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-warmStone/60">
+                  <div>
+                    <h3 className="text-xl font-serif font-bold text-forest">
+                      Shared With Me
+                    </h3>
+                    <p className="text-xs text-forest/70 mt-0.5">
+                      Documents shared with you by teammates with active role permissions
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono px-3 py-1 rounded-full bg-ivory border border-warmStone text-forest/70 self-start sm:self-auto">
+                    {sharedDocuments.length} document{sharedDocuments.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+
+                {loadingShared ? (
+                  <div className="py-16 text-center">
+                    <Loader2 className="w-8 h-8 text-forest animate-spin mx-auto mb-3" />
+                    <p className="text-xs font-mono text-forest/60">
+                      Loading shared workspace documents...
+                    </p>
+                  </div>
+                ) : sharedDocuments.length === 0 ? (
+                  <div className="py-16 text-center space-y-3">
+                    <div className="w-14 h-14 rounded-2xl bg-sage/20 text-forest mx-auto flex items-center justify-center">
+                      <Users className="w-7 h-7 text-sage-dark" />
+                    </div>
+                    <div className="max-w-md mx-auto space-y-1">
+                      <h4 className="text-base font-serif font-bold text-forest">
+                        No Shared Documents Yet
+                      </h4>
+                      <p className="text-xs text-forest/70 font-light leading-relaxed">
+                        When a teammate invites your email to collaborate on a document as an Editor or Viewer, it will appear here in your atelier.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pt-6">
+                    {sharedDocuments.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="bg-ivory/50 rounded-2xl border border-warmStone p-5 flex flex-col justify-between hover:border-forest/40 hover:shadow-sm transition-all"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="w-9 h-9 rounded-xl bg-white border border-warmStone flex items-center justify-center text-forest shadow-2xs">
+                              <FileText className="w-4 h-4 text-forest" />
+                            </div>
+                            {doc.role === "editor" ? (
+                              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                Editor
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-warmStone/50 text-forest border border-warmStone flex items-center gap-1">
+                                <Eye className="w-3 h-3 text-forest/60" />
+                                <span>Viewer</span>
+                              </span>
+                            )}
+                          </div>
+
+                          <div>
+                            <Link
+                              href={`/documents/${doc.id}`}
+                              className="text-base font-serif font-bold text-forest hover:text-terracotta line-clamp-1 transition-colors"
+                            >
+                              {doc.title || "Untitled Document"}
+                            </Link>
+                            <p className="text-xs text-forest/70 mt-1 flex items-center gap-1.5">
+                              <User className="w-3.5 h-3.5 text-sage-dark shrink-0" />
+                              <span className="truncate">
+                                Shared by <strong>{doc.owner_username}</strong>
+                              </span>
+                            </p>
+                            <p className="text-[11px] text-forest/50 font-mono truncate pl-5">
+                              {doc.owner_email}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-5 pt-3.5 border-t border-warmStone/60 flex items-center justify-between text-xs font-mono text-forest/60">
+                          <span>{formatDate(doc.shared_at)}</span>
+                          <Link
+                            href={`/documents/${doc.id}`}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-forest hover:bg-forest-dark text-white text-xs font-semibold transition shadow-xs"
+                          >
+                            <span>Open</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

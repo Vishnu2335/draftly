@@ -36,26 +36,11 @@ async def get_document(
     db: AsyncSession,
     document_id: uuid.UUID,
     user_id: uuid.UUID,
-) -> Document:
-    """Retrieve document by ID ensuring strict ownership isolation."""
-    stmt = select(Document).where(Document.id == document_id)
-    result = await db.execute(stmt)
-    document = result.scalar_one_or_none()
+) -> Tuple[Document, str]:
+    """Retrieve document by ID checking owner or collaborator permissions."""
+    from app.services.sharing_service import get_document_with_role
 
-    if not document:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document not found.",
-        )
-
-    # Enforce strict ownership check
-    if document.owner_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document not found.",
-        )
-
-    return document
+    return await get_document_with_role(db, document_id, user_id)
 
 
 async def list_documents(
@@ -115,10 +100,38 @@ async def update_document(
     document_id: uuid.UUID,
     user_id: uuid.UUID,
     req: DocumentUpdateRequest,
-) -> Document:
-    """Update document metadata, title, content, or soft deletion status."""
-    document = await get_document(db, document_id, user_id)
+) -> Tuple[Document, str]:
+    """Update document content (owner or editor), or metadata/deletion (owner only)."""
+    document, role = await get_document(db, document_id, user_id)
 
+    if role == "viewer":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Viewers cannot modify document content or properties.",
+        )
+
+    if role == "editor":
+        # Editor cannot rename
+        if req.title is not None and req.title.strip() != document.title:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only the document owner can rename this document.",
+            )
+        # Editor cannot soft delete or restore
+        if req.is_deleted is not None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only the document owner can delete or restore this document.",
+            )
+        # Editor is permitted to update content
+        if req.content is not None:
+            document.content = req.content
+            document.updated_at = func.now()
+            await db.commit()
+            await db.refresh(document)
+        return document, role
+
+    # Owner has full update capabilities
     if req.title is not None:
         cleaned_title = req.title.strip()
         document.title = cleaned_title if cleaned_title else "Untitled Document"
@@ -134,7 +147,7 @@ async def update_document(
 
     await db.commit()
     await db.refresh(document)
-    return document
+    return document, role
 
 
 async def delete_document(
@@ -143,8 +156,14 @@ async def delete_document(
     user_id: uuid.UUID,
     permanent: bool = False,
 ) -> Dict[str, Any]:
-    """Soft delete document to trash, or permanently delete from trash."""
-    document = await get_document(db, document_id, user_id)
+    """Soft delete document to trash, or permanently delete from trash (Owner only)."""
+    document, role = await get_document(db, document_id, user_id)
+
+    if role != "owner":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the document owner can delete this document.",
+        )
 
     if permanent:
         await db.delete(document)

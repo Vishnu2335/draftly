@@ -11,17 +11,20 @@ import {
   DocumentItem,
 } from "@/lib/config";
 import DraftlyEditor, { SaveStatus } from "@/components/editor/DraftlyEditor";
+import ShareModal from "@/components/editor/ShareModal";
 import {
   AlertCircle,
   ArrowLeft,
   Check,
   Clock,
   Edit3,
+  Eye,
   Loader2,
   RotateCcw,
   ShieldCheck,
   Trash2,
   User,
+  Users,
 } from "lucide-react";
 
 export default function DocumentDetailPage() {
@@ -44,6 +47,9 @@ export default function DocumentDetailPage() {
 
   // Trash action state
   const [deleting, setDeleting] = useState<boolean>(false);
+
+  // Share modal state (Phase 6)
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -176,12 +182,17 @@ export default function DocumentDetailPage() {
     );
   }
 
+  const userRole = document.user_role || "owner";
+  const isOwner = userRole === "owner";
+  const isEditor = userRole === "editor";
+  const isViewer = userRole === "viewer";
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col bg-ivory">
       {/* Top Document Header Bar */}
       <header className="bg-white border-b border-warmStone/70 sticky top-16 z-30 px-4 sm:px-8 py-3.5 shadow-2xs">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Left: Back & Editable Title */}
+          {/* Left: Back & Editable Title (Editable for Owner only) */}
           <div className="flex items-center gap-3 min-w-0">
             <Link
               href="/dashboard"
@@ -191,7 +202,7 @@ export default function DocumentDetailPage() {
               <ArrowLeft className="w-4 h-4" />
             </Link>
 
-            {isEditingTitle ? (
+            {isOwner && isEditingTitle ? (
               <form
                 onSubmit={handleSaveTitle}
                 className="flex items-center gap-2 flex-1 max-w-md"
@@ -220,77 +231,114 @@ export default function DocumentDetailPage() {
             ) : (
               <div className="flex items-center gap-2 min-w-0 group">
                 <h1
-                  onClick={() => setIsEditingTitle(true)}
-                  className="text-lg sm:text-xl font-serif font-bold text-forest truncate cursor-pointer hover:text-terracotta transition-colors"
-                  title="Click to rename document"
+                  onClick={() => {
+                    if (isOwner) setIsEditingTitle(true);
+                  }}
+                  className={`text-lg sm:text-xl font-serif font-bold text-forest truncate ${
+                    isOwner ? "cursor-pointer hover:text-terracotta transition-colors" : ""
+                  }`}
+                  title={isOwner ? "Click to rename document" : "Document Title"}
                 >
                   {document.title}
                 </h1>
-                <button
-                  onClick={() => setIsEditingTitle(true)}
-                  className="opacity-0 group-hover:opacity-100 p-1 text-forest/40 hover:text-forest transition-opacity"
-                  title="Rename document"
-                >
-                  <Edit3 className="w-3.5 h-3.5" />
-                </button>
+                {isOwner && (
+                  <button
+                    onClick={() => setIsEditingTitle(true)}
+                    className="opacity-0 group-hover:opacity-100 p-1 text-forest/40 hover:text-forest transition-opacity"
+                    title="Rename document"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             )}
           </div>
 
-          {/* Right: Telemetry & Actions */}
+          {/* Right: Telemetry, RBAC Indicators & Actions */}
           <div className="flex items-center gap-3 self-end sm:self-auto">
+            {/* RBAC Role Indicator for non-owners */}
+            {isEditor && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                Editor Access
+              </span>
+            )}
+            {isViewer && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-warmStone/40 text-forest border border-warmStone">
+                <Eye className="w-3.5 h-3.5 text-forest/60" />
+                <span>Viewer (Read-only)</span>
+              </span>
+            )}
+
             {document.is_deleted ? (
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-terracotta/20 text-terracotta-dark font-semibold">
                   In Trash
                 </span>
-                <button
-                  onClick={handleRestoreFromTrash}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-forest hover:bg-forest-dark text-white text-xs font-semibold transition-colors"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Restore</span>
-                </button>
+                {isOwner && (
+                  <button
+                    onClick={handleRestoreFromTrash}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-forest hover:bg-forest-dark text-white text-xs font-semibold transition-colors"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Restore</span>
+                  </button>
+                )}
               </div>
             ) : (
               <>
-                {/* Save status badge */}
-                <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-ivory border border-warmStone text-xs font-mono">
-                  {editorSaveStatus === "saving" && (
-                    <>
-                      <Loader2 className="w-3 h-3 text-terracotta animate-spin" />
-                      <span className="text-terracotta font-medium">Autosaving...</span>
-                    </>
-                  )}
-                  {editorSaveStatus === "saved" && (
-                    <>
-                      <Check className="w-3 h-3 text-sage-dark" />
-                      <span className="text-sage-dark font-medium">All Changes Saved</span>
-                    </>
-                  )}
-                  {editorSaveStatus === "unsaved" && (
-                    <>
-                      <Clock className="w-3 h-3 text-forest/40" />
-                      <span className="text-forest/60">Unsaved edits</span>
-                    </>
-                  )}
-                  {editorSaveStatus === "error" && (
-                    <>
-                      <AlertCircle className="w-3 h-3 text-red-600" />
-                      <span className="text-red-600 font-medium">Save issue</span>
-                    </>
-                  )}
-                </div>
+                {/* Save status badge (for Owner and Editor) */}
+                {!isViewer && (
+                  <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-ivory border border-warmStone text-xs font-mono">
+                    {editorSaveStatus === "saving" && (
+                      <>
+                        <Loader2 className="w-3 h-3 text-terracotta animate-spin" />
+                        <span className="text-terracotta font-medium">Autosaving...</span>
+                      </>
+                    )}
+                    {editorSaveStatus === "saved" && (
+                      <>
+                        <Check className="w-3 h-3 text-sage-dark" />
+                        <span className="text-sage-dark font-medium">All Changes Saved</span>
+                      </>
+                    )}
+                    {editorSaveStatus === "unsaved" && (
+                      <>
+                        <Clock className="w-3 h-3 text-forest/40" />
+                        <span className="text-forest/60">Unsaved edits</span>
+                      </>
+                    )}
+                    {editorSaveStatus === "error" && (
+                      <>
+                        <AlertCircle className="w-3 h-3 text-red-600" />
+                        <span className="text-red-600 font-medium">Save issue</span>
+                      </>
+                    )}
+                  </div>
+                )}
 
-                <button
-                  onClick={handleMoveToTrash}
-                  disabled={deleting}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-warmStone text-xs font-medium text-forest/70 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
-                  title="Move document to trash"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Trash</span>
-                </button>
+                {/* Owner Actions: Share & Trash */}
+                {isOwner && (
+                  <>
+                    <button
+                      onClick={() => setIsShareModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-forest hover:bg-forest-dark text-white text-xs font-semibold shadow-xs transition"
+                      title="Share document and manage collaborators"
+                    >
+                      <Users className="w-3.5 h-3.5" />
+                      <span>Share</span>
+                    </button>
+
+                    <button
+                      onClick={handleMoveToTrash}
+                      disabled={deleting}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-warmStone text-xs font-medium text-forest/70 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
+                      title="Move document to trash"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Trash</span>
+                    </button>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -304,7 +352,7 @@ export default function DocumentDetailPage() {
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-sage-dark" />
-              <span>Owner: <strong className="text-forest">{user?.username}</strong></span>
+              <span>Role: <strong className="text-forest capitalize">{userRole}</strong></span>
             </span>
             <span>•</span>
             <span className="flex items-center gap-1.5">
@@ -314,7 +362,7 @@ export default function DocumentDetailPage() {
           </div>
           <div className="flex items-center gap-2 text-[11px] text-forest/50">
             <ShieldCheck className="w-3.5 h-3.5 text-sage-dark" />
-            <span>Tiptap Atelier • Supabase Cloud Verified</span>
+            <span>Tiptap Atelier • Role-Enforced RBAC</span>
           </div>
         </div>
 
@@ -324,10 +372,21 @@ export default function DocumentDetailPage() {
             documentId={document.id}
             initialContent={document.content}
             token={token}
+            readOnly={isViewer}
             onStatusChange={setEditorSaveStatus}
           />
         )}
       </main>
+
+      {/* Share & Permissions Modal (Owner Only) */}
+      {isOwner && token && (
+        <ShareModal
+          documentId={document.id}
+          token={token}
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

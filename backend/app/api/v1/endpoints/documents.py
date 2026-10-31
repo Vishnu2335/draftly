@@ -11,6 +11,13 @@ from app.schemas.document import (
     DocumentResponse,
     DocumentUpdateRequest,
 )
+from app.schemas.share import (
+    DocumentCollaborator,
+    DocumentShareListResponse,
+    DocumentShareRequest,
+    DocumentShareUpdateRequest,
+    SharedWithMeListResponse,
+)
 from app.services.auth_service import get_current_active_user
 from app.services.document_service import (
     create_document,
@@ -20,6 +27,13 @@ from app.services.document_service import (
     update_document,
 )
 from app.services.import_service import process_document_import
+from app.services.sharing_service import (
+    list_document_collaborators,
+    list_shared_with_me,
+    revoke_collaborator_access,
+    share_document,
+    update_collaborator_role,
+)
 
 router = APIRouter()
 
@@ -46,8 +60,14 @@ async def get_documents(
         sort_by=sort_by,
         sort_order=sort_order,
     )
+    items = []
+    for d in docs:
+        resp = DocumentResponse.model_validate(d)
+        resp.user_role = "owner"
+        items.append(resp)
+
     return DocumentListResponse(
-        items=[DocumentResponse.model_validate(d) for d in docs],
+        items=items,
         total=total,
         active_count=active_count,
         trash_count=trash_count,
@@ -71,7 +91,9 @@ async def create_new_document(
         user_id=current_user.id,
         req=req,
     )
-    return DocumentResponse.model_validate(doc)
+    res = DocumentResponse.model_validate(doc)
+    res.user_role = "owner"
+    return res
 
 
 @router.post(
@@ -92,33 +114,53 @@ async def import_document(
         user_id=current_user.id,
         req=DocumentCreateRequest(title=title, content=content),
     )
-    return DocumentResponse.model_validate(doc)
+    res = DocumentResponse.model_validate(doc)
+    res.user_role = "owner"
+    return res
+
+
+@router.get(
+    "/shared-with-me",
+    response_model=SharedWithMeListResponse,
+    summary="List documents shared with current user",
+    description="Retrieve all documents shared with the authenticated user with owner information and assigned role.",
+)
+async def get_shared_with_me(
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> SharedWithMeListResponse:
+    return await list_shared_with_me(
+        db=db,
+        user_id=current_user.id,
+    )
 
 
 @router.get(
     "/{document_id}",
     response_model=DocumentResponse,
     summary="Get document by ID",
-    description="Retrieve full document details by ID. Enforces strict ownership access control.",
+    description="Retrieve full document details by ID. Enforces strict RBAC access control (owner, editor, or viewer).",
 )
 async def get_document_by_id(
     document_id: uuid.UUID,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> DocumentResponse:
-    doc = await get_document(
+    doc, role = await get_document(
         db=db,
         document_id=document_id,
         user_id=current_user.id,
     )
-    return DocumentResponse.model_validate(doc)
+    res = DocumentResponse.model_validate(doc)
+    res.user_role = role
+    return res
 
 
 @router.patch(
     "/{document_id}",
     response_model=DocumentResponse,
     summary="Update document",
-    description="Update document title or change soft-delete status (restore from trash).",
+    description="Update document content (owner or editor), or title and trash status (owner only).",
 )
 async def update_document_by_id(
     document_id: uuid.UUID,
@@ -126,19 +168,21 @@ async def update_document_by_id(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> DocumentResponse:
-    doc = await update_document(
+    doc, role = await update_document(
         db=db,
         document_id=document_id,
         user_id=current_user.id,
         req=req,
     )
-    return DocumentResponse.model_validate(doc)
+    res = DocumentResponse.model_validate(doc)
+    res.user_role = role
+    return res
 
 
 @router.delete(
     "/{document_id}",
     summary="Delete document",
-    description="Soft-delete a document to trash, or permanently purge an already-trashed document.",
+    description="Soft-delete a document to trash, or permanently purge an already-trashed document (owner only).",
 )
 async def delete_document_by_id(
     document_id: uuid.UUID,
@@ -153,3 +197,82 @@ async def delete_document_by_id(
         permanent=permanent,
     )
 
+
+@router.post(
+    "/{document_id}/share",
+    response_model=DocumentCollaborator,
+    status_code=status.HTTP_201_CREATED,
+    summary="Share document with user",
+    description="Share document with a registered user by email address with 'editor' or 'viewer' role (owner only).",
+)
+async def share_document_endpoint(
+    document_id: uuid.UUID,
+    req: DocumentShareRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentCollaborator:
+    return await share_document(
+        db=db,
+        document_id=document_id,
+        current_user=current_user,
+        req=req,
+    )
+
+
+@router.get(
+    "/{document_id}/shares",
+    response_model=DocumentShareListResponse,
+    summary="List document collaborators",
+    description="List all collaborators on a document alongside owner information (owner only).",
+)
+async def list_document_shares_endpoint(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentShareListResponse:
+    return await list_document_collaborators(
+        db=db,
+        document_id=document_id,
+        current_user_id=current_user.id,
+    )
+
+
+@router.patch(
+    "/{document_id}/shares/{collaborator_user_id}",
+    response_model=DocumentCollaborator,
+    summary="Update collaborator role",
+    description="Change a collaborator's access role between 'editor' and 'viewer' (owner only).",
+)
+async def update_collaborator_role_endpoint(
+    document_id: uuid.UUID,
+    collaborator_user_id: uuid.UUID,
+    req: DocumentShareUpdateRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentCollaborator:
+    return await update_collaborator_role(
+        db=db,
+        document_id=document_id,
+        owner_id=current_user.id,
+        target_user_id=collaborator_user_id,
+        req=req,
+    )
+
+
+@router.delete(
+    "/{document_id}/shares/{collaborator_user_id}",
+    summary="Revoke collaborator access",
+    description="Immediately revoke collaborator access to a document (owner only).",
+)
+async def revoke_collaborator_access_endpoint(
+    document_id: uuid.UUID,
+    collaborator_user_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    return await revoke_collaborator_access(
+        db=db,
+        document_id=document_id,
+        owner_id=current_user.id,
+        target_user_id=collaborator_user_id,
+    )

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Any, Dict, TYPE_CHECKING
+from typing import Any, Dict, List, TYPE_CHECKING
 from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -11,6 +11,7 @@ from app.models.user import GUID
 
 if TYPE_CHECKING:
     from app.models.user import User
+    from app.models.document_share import DocumentShare
 
 
 class Document(Base):
@@ -61,6 +62,13 @@ class Document(Base):
 
     # User-to-Documents relationship
     owner: Mapped["User"] = relationship("User", back_populates="documents")
+
+    # Document-to-Shares relationship (Phase 6)
+    shares: Mapped[List["DocumentShare"]] = relationship(
+        "DocumentShare",
+        back_populates="document",
+        cascade="all, delete-orphan",
+    )
 
     __table_args__ = (
         Index("ix_documents_owner_deleted_updated", "owner_id", "is_deleted", "updated_at"),

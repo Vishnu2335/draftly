@@ -10,6 +10,7 @@ from app.core.database import Base
 
 if TYPE_CHECKING:
     from app.models.document import Document
+    from app.models.document_share import DocumentShare
 
 
 class GUID(TypeDecorator):
@@ -94,6 +95,14 @@ class User(Base):
         back_populates="owner",
         cascade="all, delete-orphan",
         order_by="desc(Document.updated_at)",
+    )
+
+    # Documents shared with this user (Phase 6)
+    shared_documents: Mapped[List["DocumentShare"]] = relationship(
+        "DocumentShare",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        order_by="desc(DocumentShare.shared_at)",
     )
 
     def __repr__(self) -> str:

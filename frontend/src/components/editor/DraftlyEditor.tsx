@@ -9,7 +9,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 
 import EditorToolbar from "./EditorToolbar";
 import { apiUpdateDocument } from "@/lib/config";
-import { AlertCircle, Check, Clock, Loader2, Save } from "lucide-react";
+import { AlertCircle, Check, Clock, Eye, Loader2, Save } from "lucide-react";
 
 export type SaveStatus = "saved" | "saving" | "unsaved" | "error";
 
@@ -17,6 +17,7 @@ interface DraftlyEditorProps {
   documentId: string;
   initialContent: Record<string, any>;
   token: string;
+  readOnly?: boolean;
   onStatusChange?: (status: SaveStatus) => void;
 }
 
@@ -24,6 +25,7 @@ export default function DraftlyEditor({
   documentId,
   initialContent,
   token,
+  readOnly = false,
   onStatusChange,
 }: DraftlyEditorProps) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
@@ -65,6 +67,8 @@ export default function DraftlyEditor({
   // Debounced autosave schedule (1200ms after user pauses typing)
   const scheduleAutosave = useCallback(
     (newContent: Record<string, any>) => {
+      if (readOnly) return;
+
       latestContentRef.current = newContent;
       updateStatus("unsaved");
 
@@ -76,11 +80,12 @@ export default function DraftlyEditor({
         executeSave();
       }, 1200);
     },
-    [executeSave]
+    [executeSave, readOnly]
   );
 
   // Initialize Tiptap
   const editor = useEditor({
+    editable: !readOnly,
     extensions: [
       StarterKit.configure({
         heading: {
@@ -110,6 +115,13 @@ export default function DraftlyEditor({
       scheduleAutosave(json);
     },
   });
+
+  // Update editor editable mode when readOnly prop changes
+  useEffect(() => {
+    if (editor) {
+      editor.setEditable(!readOnly);
+    }
+  }, [editor, readOnly]);
 
   // Calculate initial word and character counts
   useEffect(() => {
@@ -158,52 +170,66 @@ export default function DraftlyEditor({
     <div className="space-y-6">
       {/* Sticky Formatting & Telemetry Action Bar */}
       <div className="sticky top-20 z-20 flex flex-wrap items-center justify-between gap-3 bg-white/90 backdrop-blur-md p-2 rounded-2xl border border-warmStone/70 shadow-xs">
-        <EditorToolbar editor={editor} />
-
-        {/* Save Status & Manual Save Control */}
-        <div className="flex items-center gap-3 pr-2">
-          {saveStatus === "saving" && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-mono text-terracotta">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span>Saving...</span>
+        {readOnly ? (
+          <div className="flex items-center justify-between w-full px-3 py-1.5 text-xs text-forest/70 font-mono">
+            <div className="flex items-center gap-2">
+              <Eye className="w-4 h-4 text-forest/50" />
+              <span>Read-Only Atelier • Viewer Access Mode</span>
+            </div>
+            <span className="text-[11px] text-forest/50 bg-ivory px-2.5 py-0.5 rounded-full border border-warmStone">
+              Content editing locked
             </span>
-          )}
+          </div>
+        ) : (
+          <>
+            <EditorToolbar editor={editor} />
 
-          {saveStatus === "saved" && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-mono text-sage-dark font-medium">
-              <Check className="w-3.5 h-3.5" />
-              <span>Saved</span>
-            </span>
-          )}
+            {/* Save Status & Manual Save Control */}
+            <div className="flex items-center gap-3 pr-2">
+              {saveStatus === "saving" && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-mono text-terracotta">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Saving...</span>
+                </span>
+              )}
 
-          {saveStatus === "unsaved" && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-mono text-forest/50">
-              <Clock className="w-3.5 h-3.5" />
-              <span>Unsaved changes</span>
-            </span>
-          )}
+              {saveStatus === "saved" && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-mono text-sage-dark font-medium">
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Saved</span>
+                </span>
+              )}
 
-          {saveStatus === "error" && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-mono text-red-600">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>Save failed</span>
-            </span>
-          )}
+              {saveStatus === "unsaved" && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-mono text-forest/50">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Unsaved changes</span>
+                </span>
+              )}
 
-          <button
-            type="button"
-            onClick={() => {
-              if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-              executeSave();
-            }}
-            disabled={isSavingRef.current || saveStatus === "saved"}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-forest hover:bg-forest-dark text-white text-xs font-semibold disabled:opacity-40 transition-all shadow-xs"
-            title="Manual Save (Ctrl+S)"
-          >
-            <Save className="w-3.5 h-3.5" />
-            <span>Save</span>
-          </button>
-        </div>
+              {saveStatus === "error" && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-mono text-red-600">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  <span>Save failed</span>
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+                  executeSave();
+                }}
+                disabled={isSavingRef.current || saveStatus === "saved"}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-forest hover:bg-forest-dark text-white text-xs font-semibold disabled:opacity-40 transition-all shadow-xs"
+                title="Manual Save (Ctrl+S)"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>Save</span>
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Focused 760px Editorial Writing Canvas */}

@@ -31,15 +31,18 @@ def get_engine() -> Optional[AsyncEngine]:
 
     if _async_engine is None:
         try:
-            # Configure pooling suitable for Supabase PostgreSQL
-            _async_engine = create_async_engine(
-                url,
-                echo=(settings.ENVIRONMENT == "development"),
-                pool_pre_ping=True,
-                pool_size=5,
-                max_overflow=10,
-                connect_args={"timeout": 5},
-            )
+            kwargs: Dict[str, Any] = {
+                "echo": (settings.ENVIRONMENT == "development"),
+            }
+            if "postgresql" in url:
+                kwargs["pool_pre_ping"] = True
+                kwargs["pool_size"] = 5
+                kwargs["max_overflow"] = 10
+                kwargs["connect_args"] = {"timeout": 5}
+            elif "sqlite" in url:
+                kwargs["connect_args"] = {"check_same_thread": False}
+
+            _async_engine = create_async_engine(url, **kwargs)
             _async_session_factory = async_sessionmaker(
                 bind=_async_engine,
                 class_=AsyncSession,

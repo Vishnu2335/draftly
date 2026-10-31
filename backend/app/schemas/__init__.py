@@ -10,6 +10,15 @@ from app.schemas.document import (
     DocumentResponse,
     DocumentUpdateRequest,
 )
+from app.schemas.share import (
+    DocumentCollaborator,
+    DocumentOwnerInfo,
+    DocumentShareListResponse,
+    DocumentShareRequest,
+    DocumentShareUpdateRequest,
+    SharedWithMeItem,
+    SharedWithMeListResponse,
+)
 
 __all__ = [
     "UserRegisterRequest",
@@ -20,4 +29,11 @@ __all__ = [
     "DocumentUpdateRequest",
     "DocumentResponse",
     "DocumentListResponse",
+    "DocumentShareRequest",
+    "DocumentShareUpdateRequest",
+    "DocumentCollaborator",
+    "DocumentOwnerInfo",
+    "DocumentShareListResponse",
+    "SharedWithMeItem",
+    "SharedWithMeListResponse",
 ]

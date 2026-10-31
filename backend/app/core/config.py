@@ -109,6 +109,9 @@ class Settings(BaseSettings):
         if not self.DATABASE_URL:
             return None
         url = self.DATABASE_URL.strip()
+        if url.startswith("sqlite"):
+            return url
+
         # Verify it resembles a database URI
         if not (url.startswith("postgres://") or url.startswith("postgresql://")):
             return None
