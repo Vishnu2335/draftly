@@ -1,11 +1,15 @@
 import uuid
 from datetime import datetime
+from typing import List, TYPE_CHECKING
 from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import CHAR, TypeDecorator
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.document import Document
 
 
 class GUID(TypeDecorator):
@@ -84,5 +88,14 @@ class User(Base):
         nullable=False,
     )
 
+    # User-to-Documents relationship (Phase 3)
+    documents: Mapped[List["Document"]] = relationship(
+        "Document",
+        back_populates="owner",
+        cascade="all, delete-orphan",
+        order_by="desc(Document.updated_at)",
+    )
+
     def __repr__(self) -> str:
         return f"<User id={self.id} email={self.email} username={self.username}>"
+

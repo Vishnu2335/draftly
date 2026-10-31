@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(TOKEN_KEY, receivedToken);
       setToken(receivedToken);
       setUser(userProfile);
-      router.push("/");
+      router.push("/dashboard");
     } finally {
       setLoading(false);
     }
@@ -153,3 +153,4 @@ export function useAuth() {
   }
   return context;
 }
+

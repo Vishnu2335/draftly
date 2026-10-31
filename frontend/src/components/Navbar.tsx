@@ -22,7 +22,7 @@ export default function Navbar() {
                 Draftly
               </span>
               <span className="bg-sage/20 text-sage text-[10px] font-semibold uppercase px-2 py-0.5 rounded border border-sage/30">
-                Phase 2
+                Phase 3
               </span>
             </div>
             <p className="text-[10px] text-warmStone-light/60 tracking-wider uppercase font-mono hidden sm:block">
@@ -33,6 +33,15 @@ export default function Navbar() {
 
         {/* Navigation & Auth Controls */}
         <nav className="flex items-center gap-2 sm:gap-4">
+          {isAuthenticated && (
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-warmStone-light hover:text-white bg-forest-light hover:bg-forest-light/80 border border-warmStone/20 rounded-lg transition-colors"
+            >
+              <span>Workspace</span>
+            </Link>
+          )}
+
           <a
             href="http://localhost:8000/docs"
             target="_blank"

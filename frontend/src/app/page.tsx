@@ -25,7 +25,7 @@ export default function Home() {
         <div className="max-w-3xl relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-terracotta/20 border border-terracotta/40 text-terracotta-light text-xs font-semibold uppercase tracking-wider mb-6">
             <Sparkles className="w-3.5 h-3.5 text-terracotta" />
-            Phase 2: Authentication Active
+            Phase 3: Workspace Dashboard Active
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-bold font-serif tracking-tight text-white mb-4 leading-tight">
@@ -40,29 +40,41 @@ export default function Home() {
 
           {/* User Session Callout */}
           {isAuthenticated && user ? (
-            <div className="mb-8 p-4 rounded-2xl bg-forest-dark border border-sage/30 flex items-center justify-between gap-4 max-w-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-sage-dark text-white flex items-center justify-center font-bold text-base uppercase">
-                  {user.username.charAt(0)}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-white text-sm">
-                      {user.username}
-                    </span>
-                    <span className="bg-sage/20 text-sage text-[10px] font-mono px-2 py-0.5 rounded">
-                      Authenticated
-                    </span>
+            <div className="space-y-4 mb-8">
+              <div className="p-4 rounded-2xl bg-forest-dark border border-sage/30 flex items-center justify-between gap-4 max-w-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-sage-dark text-white flex items-center justify-center font-bold text-base uppercase">
+                    {user.username.charAt(0)}
                   </div>
-                  <p className="text-xs text-warmStone-light/70 font-mono">
-                    {user.email}
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-white text-sm">
+                        {user.username}
+                      </span>
+                      <span className="bg-sage/20 text-sage text-[10px] font-mono px-2 py-0.5 rounded">
+                        Authenticated
+                      </span>
+                    </div>
+                    <p className="text-xs text-warmStone-light/70 font-mono">
+                      {user.email}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-[11px] text-sage font-mono">
+                    Session Active
+                  </span>
                 </div>
               </div>
-              <div className="text-right">
-                <span className="text-[11px] text-sage font-mono">
-                  JWT Session Valid
-                </span>
+
+              <div>
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-terracotta hover:bg-terracotta-dark text-white text-sm font-semibold transition-all shadow-sm active:scale-95"
+                >
+                  <span>Open Workspace Dashboard</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
             </div>
           ) : (

@@ -68,3 +68,4 @@ async def get_me(
 ) -> UserResponse:
     """Current authenticated user identification endpoint."""
     return UserResponse.model_validate(current_user)
+

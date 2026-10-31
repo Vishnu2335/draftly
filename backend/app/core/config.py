@@ -95,6 +95,9 @@ class Settings(BaseSettings):
     # Supabase PostgreSQL Database URL
     DATABASE_URL: Optional[str] = None
 
+    # Supabase API Secret Key (if used for direct REST/storage integrations)
+    SUPABASE_SECRET_KEY: Optional[str] = None
+
     # JWT Authentication Configuration
     JWT_SECRET_KEY: str = _initial_jwt_secret
     JWT_ALGORITHM: str = "HS256"
