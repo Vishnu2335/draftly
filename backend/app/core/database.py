@@ -122,3 +122,4 @@ async def check_database_connection() -> Dict[str, Any]:
             "message": f"Connection check failed: {str(exc)}",
             "latency_ms": round(latency, 2),
         }
+

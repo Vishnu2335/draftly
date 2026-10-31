@@ -50,3 +50,4 @@ async def test_cors_headers():
         )
         assert response.status_code == 200
         assert "access-control-allow-origin" in response.headers
+

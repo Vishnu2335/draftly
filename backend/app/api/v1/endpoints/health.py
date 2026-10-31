@@ -43,3 +43,4 @@ async def get_health() -> Dict[str, Any]:
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "database": db_status,
     }
+
