@@ -62,7 +62,7 @@ export default function DashboardPage() {
   const [activeCount, setActiveCount] = useState<number>(0);
   const [trashCount, setTrashCount] = useState<number>(0);
 
-  // Shared documents state (Phase 6)
+  // Shared documents state
   const [sharedDocuments, setSharedDocuments] = useState<SharedWithMeItem[]>([]);
   const [loadingShared, setLoadingShared] = useState<boolean>(false);
   const [sharedCount, setSharedCount] = useState<number>(0);
@@ -288,7 +288,7 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center gap-2 text-xs font-mono text-sage-dark uppercase tracking-wider mb-1">
             <Sparkles className="w-3.5 h-3.5 text-terracotta" />
-            <span>Workspace Atelier • Phase 4 & 5</span>
+            <span>Workspace Atelier • Document Studio</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-serif font-bold text-forest tracking-tight">
             Welcome back, {user.username}
@@ -370,7 +370,7 @@ export default function DashboardPage() {
                 </div>
               </button>
 
-              {/* Shared With Me (Phase 6) */}
+              {/* Shared With Me */}
               <button
                 onClick={() => setActiveTab("shared")}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
@@ -525,13 +525,13 @@ export default function DashboardPage() {
 
                 <div className="bg-white p-5 rounded-2xl border border-warmStone/60 shadow-xs">
                   <span className="text-xs font-mono uppercase text-forest/60 font-medium">
-                    Active Architecture
+                    Storage &amp; Sync
                   </span>
                   <div className="text-xl font-serif font-bold text-sage-dark mt-1">
-                    Phase 3 Active
+                    Cloud Synced
                   </div>
                   <p className="text-xs text-forest/60 mt-1">
-                    Metadata, CRUD, and isolation verified
+                    Encrypted and automatically backed up
                   </p>
                 </div>
               </div>
@@ -580,7 +580,7 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Tab 2: Shared With Me (Phase 6) */}
+          {/* Tab 2: Shared With Me */}
           {activeTab === "shared" && (
             <div className="space-y-6">
               <div className="bg-white rounded-2xl border border-warmStone/70 p-6 shadow-2xs">

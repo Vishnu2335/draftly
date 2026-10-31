@@ -48,7 +48,7 @@ export default function DocumentDetailPage() {
   // Trash action state
   const [deleting, setDeleting] = useState<boolean>(false);
 
-  // Share modal state (Phase 6)
+  // Share modal state
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
 
   useEffect(() => {

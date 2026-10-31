@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { LogIn, LogOut, ShieldCheck, Terminal, User as UserIcon } from "lucide-react";
+import { LogIn, LogOut, ShieldCheck, User as UserIcon } from "lucide-react";
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -22,7 +22,7 @@ export default function Navbar() {
                 Draftly
               </span>
               <span className="bg-sage/20 text-sage text-[10px] font-semibold uppercase px-2 py-0.5 rounded border border-sage/30">
-                Phase 4 & 5
+                Workspace
               </span>
             </div>
             <p className="text-[10px] text-warmStone-light/60 tracking-wider uppercase font-mono hidden sm:block">
@@ -41,16 +41,6 @@ export default function Navbar() {
               <span>Workspace</span>
             </Link>
           )}
-
-          <a
-            href="http://localhost:8000/docs"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-warmStone-light hover:text-white hover:bg-forest-light rounded-md transition-colors"
-          >
-            <Terminal className="w-3.5 h-3.5 text-sage" />
-            <span className="hidden sm:inline">API Docs</span>
-          </a>
 
           <div className="h-4 w-[1px] bg-warmStone/20 mx-1 hidden sm:block"></div>
 

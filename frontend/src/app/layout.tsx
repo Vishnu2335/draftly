@@ -37,9 +37,9 @@ export default function RootLayout({
               <p className="font-serif font-bold text-forest text-sm mb-1">
                 Draftly Workspace Core
               </p>
-              <p>Phase 2: Authentication &amp; User Management • Next.js • FastAPI • Supabase PostgreSQL</p>
+              <p>Document Creation, Collaborative Editing &amp; Sharing Platform • Next.js • FastAPI • Supabase PostgreSQL</p>
               <p className="mt-2 text-[11px] font-mono text-mutedText/80">
-                Argon2 Password Hashing • HS256 JWT Authorization • Protected Endpoints
+                Secure Architecture • Cloud Document Persistence • Role-Based Access Control
               </p>
             </div>
           </footer>

@@ -55,7 +55,7 @@ export default function StatusIndicator() {
             <span className="inline-block w-2 h-2 rounded-full bg-sage"></span>
           </div>
           <h3 className="text-xl font-bold text-forest editorial-title">
-            Phase 1 System Connectivity
+            System & Service Health
           </h3>
           <p className="text-xs sm:text-sm text-mutedText">
             Targeting backend at{" "}

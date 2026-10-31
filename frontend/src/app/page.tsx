@@ -25,7 +25,7 @@ export default function Home() {
         <div className="max-w-3xl relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-terracotta/20 border border-terracotta/40 text-terracotta-light text-xs font-semibold uppercase tracking-wider mb-6">
             <Sparkles className="w-3.5 h-3.5 text-terracotta" />
-            Phase 4 & 5: Document Editor & File Import Active
+            Document Workspace & Collaborative Sharing Active
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-bold font-serif tracking-tight text-white mb-4 leading-tight">
@@ -98,9 +98,9 @@ export default function Home() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-warmStone/15 font-mono text-xs text-warmStone-light/80">
             <div>
               <span className="block text-terracotta font-bold text-base sm:text-lg">
-                Phase 2
+                Secure Auth
               </span>
-              <span>Authentication</span>
+              <span>User Management</span>
             </div>
             <div>
               <span className="block text-sage font-bold text-base sm:text-lg">
@@ -132,7 +132,7 @@ export default function Home() {
         <StatusIndicator />
       </section>
 
-      {/* Phase 2 Architecture Capabilities */}
+      {/* Security & Architecture Capabilities */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         <div className="bg-white border border-borderTone rounded-2xl p-6 shadow-sm">
           <div className="w-10 h-10 rounded-xl bg-forest-light text-sage flex items-center justify-center mb-4">
@@ -190,27 +190,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Phase Progression Gate Notification */}
+      {/* Enterprise-Grade Platform Capabilities */}
       <section className="bg-warmStone-light border border-borderTone rounded-2xl p-6 sm:p-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-full bg-forest text-sage flex items-center justify-center flex-shrink-0 mt-1">
-              <Lock className="w-5 h-5" />
+              <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
               <h4 className="text-base sm:text-lg font-bold text-forest">
-                Phase-by-Phase Gated Development
+                Enterprise-Grade Document Workspace
               </h4>
               <p className="text-xs sm:text-sm text-mutedText max-w-2xl leading-relaxed">
-                Phase 2 (Authentication &amp; User Management) is fully implemented
-                and verified with automated tests. In accordance with PRD Section 17,
-                subsequent milestones (Phase 3 Workspace Dashboard, Phase 4 Document
-                Editor) remain locked until explicit stakeholder review and approval.
+                Draftly delivers seamless rich-text editing, multi-format file import (TXT, Markdown, DOCX),
+                role-based sharing permissions (Owner, Editor, Viewer), and reliable cloud persistence built on Next.js, FastAPI, and Supabase PostgreSQL.
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-center font-mono text-xs font-semibold px-3 py-1.5 rounded-lg bg-sage-light text-sage-dark border border-sage/40">
-            Phase 2: Complete &amp; Verified
+            Production Ready
           </div>
         </div>
       </section>
