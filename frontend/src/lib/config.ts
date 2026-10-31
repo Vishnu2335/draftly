@@ -2,8 +2,25 @@
  * Frontend Configuration & API Client Helpers
  */
 
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+/**
+ * Normalise and sanitize the backend API Base URL.
+ * Prevents trailing slashes, surrounding quotes, and duplicate /api or /api/v1 prefixes.
+ */
+export function cleanApiBaseUrl(rawUrl?: string): string {
+  if (!rawUrl) return "http://localhost:8000";
+  let url = rawUrl.trim();
+  // Strip enclosing quotes if accidentally pasted into env variable
+  url = url.replace(/^["']|["']$/g, "").trim();
+  // Strip trailing slashes
+  url = url.replace(/\/+$/, "");
+  // Prevent duplicate prefixes if user accidentally appended /api/v1 or /api in Vercel
+  url = url.replace(/\/api\/v1$/, "").replace(/\/api$/, "");
+  return url || "http://localhost:8000";
+}
+
+export const API_BASE_URL = cleanApiBaseUrl(
+  process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL
+);
 
 export const API_ENDPOINTS = {
   HEALTH: `${API_BASE_URL}/api/v1/health`,

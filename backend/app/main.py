@@ -84,14 +84,16 @@ app = FastAPI(
 )
 
 # CORS Configuration
-if settings.CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.CORS_ORIGINS,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+# Supports explicit origins from CORS_ORIGINS as well as all Vercel production and preview deployment domains (*.vercel.app)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=r"^https://([a-zA-Z0-9_-]+\.)*vercel\.app$",
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+)
 
 # Register Exception Handlers
 register_exception_handlers(app)

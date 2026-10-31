@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { API_BASE_URL } from "@/lib/config";
+import { API_BASE_URL, API_ENDPOINTS } from "@/lib/config";
 
 export interface UserProfile {
   id: string;
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const verifyTokenAndLoadUser = async (authToken: string) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
+      const res = await fetch(API_ENDPOINTS.AUTH_ME, {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+      const res = await fetch(API_ENDPOINTS.AUTH_LOGIN, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -78,10 +78,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        const errMsg = data?.error?.message || "Authentication failed.";
+        const errMsg = data?.error?.message || data?.detail || "Authentication failed.";
         throw new Error(errMsg);
       }
 
@@ -92,6 +92,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(receivedToken);
       setUser(userProfile);
       router.push("/dashboard");
+    } catch (err: unknown) {
+      if (err instanceof TypeError && err.message.toLowerCase().includes("fetch")) {
+        throw new Error(
+          `Unable to reach backend API at ${API_BASE_URL}. If hosted on Render, the free instance may take ~45s to wake from sleep. Please check backend status and verify NEXT_PUBLIC_API_URL.`
+        );
+      }
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -100,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (username: string, email: string, password: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
+      const res = await fetch(API_ENDPOINTS.AUTH_REGISTER, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -108,15 +115,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ username, email, password }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        const errMsg = data?.error?.message || "Registration failed.";
+        const errMsg = data?.error?.message || data?.detail || "Registration failed.";
         throw new Error(errMsg);
       }
 
       // Immediately log in user upon successful registration
       await login(email, password);
+    } catch (err: unknown) {
+      if (err instanceof TypeError && err.message.toLowerCase().includes("fetch")) {
+        throw new Error(
+          `Unable to reach backend API at ${API_BASE_URL}. If hosted on Render, the free instance may take ~45s to wake from sleep. Please check backend status and verify NEXT_PUBLIC_API_URL.`
+        );
+      }
+      throw err;
     } finally {
       setLoading(false);
     }
