@@ -24,9 +24,32 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager for startup and shutdown hooks."""
     logger.info(f"Starting {settings.PROJECT_NAME} API v{settings.VERSION} [{settings.ENVIRONMENT}]")
 
+    # In production, enforce that PostgreSQL is configured and prevent SQLite
+    if settings.ENVIRONMENT.lower() == "production":
+        if not settings.DATABASE_URL:
+            err_msg = (
+                "FATAL: Production deployment requires a valid Supabase PostgreSQL connection string "
+                "in the DATABASE_URL environment variable (e.g. postgresql+asyncpg://postgres:[PASSWORD]@[HOST]:5432/postgres?ssl=require). "
+                "SQLite is disabled in production."
+            )
+            logger.critical(err_msg)
+            raise RuntimeError(err_msg)
+        if "sqlite" in settings.DATABASE_URL.lower():
+            err_msg = "FATAL: SQLite is strictly forbidden in production. Please configure Supabase PostgreSQL in DATABASE_URL."
+            logger.critical(err_msg)
+            raise RuntimeError(err_msg)
+        if not settings.async_database_url or not settings.async_database_url.startswith("postgresql+asyncpg://"):
+            err_msg = (
+                "FATAL: DATABASE_URL must be a valid PostgreSQL connection URI "
+                "(postgresql+asyncpg://postgres:[PASSWORD]@[HOST]:5432/postgres?ssl=require). "
+                "Do not use Supabase project URLs (https://...) or API keys (sb_publishable_... / sb_secret_...)."
+            )
+            logger.critical(err_msg)
+            raise RuntimeError(err_msg)
+
     # If using local SQLite database in development, ensure all tables are created
     engine = get_engine()
-    if engine and "sqlite" in str(engine.url):
+    if engine and "sqlite" in str(engine.url) and settings.ENVIRONMENT.lower() != "production":
         import app.models  # noqa: F401
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
@@ -36,6 +59,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     db_health = await check_database_connection()
     if db_health["status"] == "connected":
         logger.info(f"{db_health['provider']}: Connected (Latency: {db_health['latency_ms']}ms)")
+    elif settings.ENVIRONMENT.lower() == "production":
+        err_msg = f"FATAL: Database connection failed during production startup: {db_health['message']}"
+        logger.critical(err_msg)
+        raise RuntimeError(err_msg)
     elif db_health["status"] == "unconfigured":
         logger.info("Database: Unconfigured (DATABASE_URL not set). Ready for configuration.")
     else:

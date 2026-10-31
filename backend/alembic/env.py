@@ -25,7 +25,20 @@ target_metadata = Base.metadata
 
 
 def get_db_url() -> str:
-    """Dynamic Database URL from environment / settings."""
+    """Dynamic Database URL from environment / settings.
+    
+    In production, strictly requires a valid PostgreSQL URL and disallows SQLite.
+    """
+    if settings.ENVIRONMENT.lower() == "production":
+        url = settings.async_database_url
+        if not url or not url.startswith("postgresql+asyncpg://"):
+            raise RuntimeError(
+                "CRITICAL: Alembic migration failed: Production deployment requires a valid Supabase PostgreSQL "
+                "URI in the DATABASE_URL environment variable (postgresql+asyncpg://postgres:[PASSWORD]@[HOST]:5432/postgres?ssl=require). "
+                "SQLite is disabled in production."
+            )
+        return url
+
     url = settings.async_database_url or settings.DATABASE_URL
     if not url:
         return "postgresql+asyncpg://postgres:placeholder@localhost:5432/postgres"

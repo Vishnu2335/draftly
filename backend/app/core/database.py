@@ -39,7 +39,10 @@ def get_engine() -> Optional[AsyncEngine]:
                 kwargs["pool_pre_ping"] = True
                 kwargs["pool_size"] = 5
                 kwargs["max_overflow"] = 10
-                kwargs["connect_args"] = {"timeout": 5}
+                connect_args: Dict[str, Any] = {"timeout": 10}
+                if "6543" in url or "pooler" in url:
+                    connect_args["statement_cache_size"] = 0
+                kwargs["connect_args"] = connect_args
             elif "sqlite" in url:
                 kwargs["connect_args"] = {"check_same_thread": False}
 

@@ -8,7 +8,19 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def _ensure_env_file_and_jwt_secret() -> str:
-    """Ensure backend/.env exists and contains a cryptographically secure JWT secret."""
+    """Ensure a cryptographically secure JWT secret exists.
+    
+    Checks the OS environment first (standard for Render / production deployments).
+    Falls back to reading or generating a secret in backend/.env for local development.
+    """
+    # 1. Check OS environment first (Render / Vercel / CI)
+    env_secret = os.environ.get("JWT_SECRET_KEY")
+    if env_secret:
+        clean_secret = env_secret.strip().strip('"').strip("'")
+        if len(clean_secret) >= 32:
+            return clean_secret
+
+    # 2. Local development fallback in backend/.env
     env_path = Path(__file__).resolve().parent.parent.parent / ".env"
     existing_secret = None
     lines: List[str] = []
@@ -92,10 +104,14 @@ class Settings(BaseSettings):
             return v
         return []
 
-    # Supabase PostgreSQL Database URL
+    # Supabase PostgreSQL Database URL (REQUIRED in production)
     DATABASE_URL: Optional[str] = None
 
-    # Supabase API Secret Key (if used for direct REST/storage integrations)
+    # Supabase Project Metadata & Optional Keys
+    SUPABASE_URL: Optional[str] = None
+    NEXT_PUBLIC_SUPABASE_URL: Optional[str] = None
+    SUPABASE_PUBLISHABLE_KEY: Optional[str] = None
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: Optional[str] = None
     SUPABASE_SECRET_KEY: Optional[str] = None
 
     # JWT Authentication Configuration
@@ -105,15 +121,40 @@ class Settings(BaseSettings):
 
     @property
     def async_database_url(self) -> Optional[str]:
-        """Convert standard postgres connection string to asyncpg compatible format, or provide local SQLite in development."""
+        """Convert standard postgres connection string to asyncpg compatible format, or provide local SQLite in development.
+        
+        CRITICAL FOR PRODUCTION: SQLite is strictly forbidden in production. If DATABASE_URL is missing,
+        invalid, or points to SQLite when ENVIRONMENT=production, this returns None to ensure safe fail-fast behavior.
+        """
+        is_production = self.ENVIRONMENT.lower() == "production"
+
         if not self.DATABASE_URL:
-            if self.ENVIRONMENT == "development":
-                return "sqlite+aiosqlite:///d:/antigravityyy/Draftly/backend/draftly.db"
+            if not is_production:
+                db_path = Path(__file__).resolve().parent.parent.parent / "draftly_dev.db"
+                return f"sqlite+aiosqlite:///{db_path.as_posix()}"
             return None
 
         url = self.DATABASE_URL.strip().strip('"').strip("'")
+
+        # Disallow SQLite in production environment
         if url.startswith("sqlite"):
+            if is_production:
+                return None
             return url
+
+        # Detect placeholders, API keys, or HTTP URLs accidentally passed as DATABASE_URL
+        if (
+            "[YOUR-PASSWORD]" in url
+            or "your_password" in url
+            or url.startswith("http://")
+            or url.startswith("https://")
+            or url.startswith("sb_secret_")
+            or url.startswith("sb_publishable_")
+        ):
+            if not is_production:
+                db_path = Path(__file__).resolve().parent.parent.parent / "draftly_dev.db"
+                return f"sqlite+aiosqlite:///{db_path.as_posix()}"
+            return None
 
         # Normalise driver prefix for SQLAlchemy asyncpg
         if url.startswith("postgres://"):
@@ -124,12 +165,16 @@ class Settings(BaseSettings):
         if url.startswith("postgresql+asyncpg://"):
             if "sslmode=" in url:
                 url = url.replace("sslmode=require", "ssl=require").replace("sslmode=prefer", "ssl=prefer")
+            elif "ssl=" not in url:
+                # Default to ssl=require for cloud PostgreSQL connections
+                separator = "&" if "?" in url else "?"
+                url = f"{url}{separator}ssl=require"
             return url
 
-        # If DATABASE_URL is not a valid Postgres URI (e.g. Supabase API secret key like sb_secret_...)
-        # In development mode, fallback to local persistent SQLite so local development works seamlessly
-        if self.ENVIRONMENT == "development":
-            return "sqlite+aiosqlite:///d:/antigravityyy/Draftly/backend/draftly.db"
+        # Fallback to local SQLite only in development/test
+        if not is_production:
+            db_path = Path(__file__).resolve().parent.parent.parent / "draftly_dev.db"
+            return f"sqlite+aiosqlite:///{db_path.as_posix()}"
 
         return None
 
