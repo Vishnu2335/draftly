@@ -2,83 +2,107 @@
 
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { LogIn, LogOut, ShieldCheck, User as UserIcon } from "lucide-react";
+import { LogIn, LogOut, FileText, LayoutDashboard } from "lucide-react";
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
+  const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 bg-forest text-white border-b border-forest-light shadow-md">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand */}
+    <header className="sticky top-0 z-50 bg-paper-cream text-ink border-b-2 border-ink-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        {/* Brand / Logo (Always navigates to public landing page) */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-lg bg-terracotta flex items-center justify-center text-white font-serif font-bold text-xl shadow-sm group-hover:bg-terracotta-dark transition-colors">
+          <div className="w-9 h-9 rounded-sm bg-coral border-2 border-ink-border flex items-center justify-center text-white font-sans font-extrabold text-xl shadow-retro group-hover:bg-coral-hover transition-colors">
             D
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-serif text-lg font-bold tracking-tight text-white">
-                Draftly
-              </span>
-              <span className="bg-sage/20 text-sage text-[10px] font-semibold uppercase px-2 py-0.5 rounded border border-sage/30">
-                Workspace
-              </span>
-            </div>
-            <p className="text-[10px] text-warmStone-light/60 tracking-wider uppercase font-mono hidden sm:block">
-              Modern Document Workspace
-            </p>
+          <div className="flex items-center gap-2">
+            <span className="font-sans text-xl font-extrabold tracking-tight text-ink">
+              Draftly
+            </span>
+            <span className="border border-ink-border bg-paper-light text-ink text-[10px] font-bold uppercase px-2 py-0.5 rounded-sm shadow-[1px_1px_0px_#171717]">
+              Workspace
+            </span>
           </div>
         </Link>
 
-        {/* Navigation & Auth Controls */}
-        <nav className="flex items-center gap-2 sm:gap-4">
-          {isAuthenticated && (
+        {/* Navigation & Controls */}
+        <nav className="flex items-center gap-3 sm:gap-5">
+          {/* Main Navigation Links */}
+          <div className="hidden sm:flex items-center gap-4 text-xs font-bold">
             <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-warmStone-light hover:text-white bg-forest-light hover:bg-forest-light/80 border border-warmStone/20 rounded-lg transition-colors"
+              href="/"
+              className={`transition-colors ${
+                pathname === "/"
+                  ? "text-coral underline underline-offset-4 decoration-2"
+                  : "text-ink hover:text-coral"
+              }`}
             >
-              <span>Workspace</span>
+              Overview
             </Link>
-          )}
 
-          <div className="h-4 w-[1px] bg-warmStone/20 mx-1 hidden sm:block"></div>
+            {isAuthenticated && (
+              <Link
+                href="/dashboard"
+                className={`transition-colors ${
+                  pathname?.startsWith("/dashboard") || pathname?.startsWith("/documents")
+                    ? "text-coral underline underline-offset-4 decoration-2"
+                    : "text-ink hover:text-coral"
+                }`}
+              >
+                My Documents
+              </Link>
+            )}
+          </div>
 
+          <div className="h-4 w-[2px] bg-ink-border mx-1 hidden sm:block" />
+
+          {/* User Auth Actions */}
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-forest-dark border border-forest-light text-xs font-mono">
-                <div className="w-5 h-5 rounded-full bg-sage-dark text-white flex items-center justify-center text-[10px] font-bold uppercase">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Link
+                href="/dashboard"
+                className="inline-flex sm:hidden items-center gap-1.5 px-2.5 py-1.5 rounded-sm text-xs font-bold bg-paper-light border-2 border-ink-border text-ink shadow-retro"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 text-coral" />
+                <span>Docs</span>
+              </Link>
+
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-sm bg-paper-light border-2 border-ink-border text-xs font-semibold shadow-retro">
+                <div className="w-6 h-6 rounded-full border border-ink-border bg-coral text-white flex items-center justify-center text-[10px] font-bold uppercase">
                   {user.username.charAt(0)}
                 </div>
-                <span className="text-warmStone-light font-medium max-w-[120px] truncate">
+                <span className="text-ink font-bold max-w-[110px] truncate hidden sm:inline">
                   {user.username}
                 </span>
               </div>
 
               <button
                 onClick={logout}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-warmStone-light/10 hover:bg-red-900/30 text-warmStone-light hover:text-red-200 border border-warmStone/15 transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-bold bg-paper-light hover:bg-paper-dark text-ink border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                 title="Sign out of Draftly"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <LogOut className="w-3.5 h-3.5 text-ink" />
                 <span className="hidden sm:inline">Sign Out</span>
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-warmStone-light hover:text-white hover:bg-forest-light transition-all"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-sm text-xs font-bold bg-paper-light hover:bg-paper-dark text-ink border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
               >
-                <LogIn className="w-3.5 h-3.5 text-sage" />
-                Sign In
+                <LogIn className="w-3.5 h-3.5 text-coral" />
+                <span>Sign In</span>
               </Link>
 
               <Link
                 href="/register"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-terracotta hover:bg-terracotta-dark text-white transition-all shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-xs font-extrabold bg-coral hover:bg-coral-hover text-white border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
               >
-                Create Account
+                <span>Create Account</span>
               </Link>
             </div>
           )}

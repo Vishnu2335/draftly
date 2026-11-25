@@ -1,214 +1,285 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
-import StatusIndicator from "@/components/StatusIndicator";
 import { useAuth } from "@/context/AuthContext";
 import {
   ArrowRight,
-  Database,
-  KeyRound,
-  Layout,
-  Lock,
-  Server,
-  ShieldCheck,
+  CheckSquare,
+  FileEdit,
+  FileText,
+  Search,
+  Share2,
   Sparkles,
-  UserCheck,
+  UploadCloud,
+  Users,
 } from "lucide-react";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-      {/* Hero Card */}
-      <section className="bg-forest text-white rounded-3xl p-8 sm:p-12 shadow-lg mb-10 relative overflow-hidden border border-forest-light">
-        <div className="max-w-3xl relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-terracotta/20 border border-terracotta/40 text-terracotta-light text-xs font-semibold uppercase tracking-wider mb-6">
-            <Sparkles className="w-3.5 h-3.5 text-terracotta" />
-            Document Workspace & Collaborative Sharing Active
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+      {/* Hero Header Section */}
+      <section className="text-center mb-12 sm:mb-16">
+        <h1 className="text-4xl sm:text-6xl font-extrabold font-sans text-ink tracking-tight mb-4">
+          Create &amp; Collaborate with Draftly
+        </h1>
+        <p className="text-base sm:text-lg text-ink-muted max-w-2xl mx-auto font-medium leading-relaxed mb-8">
+          Looking for focus? Experience a modern, distraction-free document workspace
+          to write, import, and share with your team today.
+        </p>
+
+        {/* Hero Quick-Action Bar (Modeled after reference search bar) */}
+        <div className="max-w-2xl mx-auto bg-paper-light border-2 border-ink-border rounded-sm p-3 shadow-retro-md flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 px-3 py-2 w-full text-left text-ink-muted text-sm font-medium border-2 border-ink-border bg-paper-cream/60 rounded-sm">
+            <Search className="w-4 h-4 text-ink flex-shrink-0" />
+            <span className="truncate">Draftly Document Workspace • Ready to write</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-bold font-serif tracking-tight text-white mb-4 leading-tight">
-            Draftly Workspace
-          </h1>
-
-          <p className="text-base sm:text-lg text-warmStone-light font-light leading-relaxed mb-6 max-w-2xl">
-            A modern, focused, distraction-free document workspace. Engineered
-            with its own distinct editorial identity—free from Google
-            Docs-style skeuomorphic margins, print rulers, and toolbar bloat.
-          </p>
-
-          {/* User Session Callout */}
-          {isAuthenticated && user ? (
-            <div className="space-y-4 mb-8">
-              <div className="p-4 rounded-2xl bg-forest-dark border border-sage/30 flex items-center justify-between gap-4 max-w-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-sage-dark text-white flex items-center justify-center font-bold text-base uppercase">
-                    {user.username.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-white text-sm">
-                        {user.username}
-                      </span>
-                      <span className="bg-sage/20 text-sage text-[10px] font-mono px-2 py-0.5 rounded">
-                        Authenticated
-                      </span>
-                    </div>
-                    <p className="text-xs text-warmStone-light/70 font-mono">
-                      {user.email}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-[11px] text-sage font-mono">
-                    Session Active
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-terracotta hover:bg-terracotta-dark text-white text-sm font-semibold transition-all shadow-sm active:scale-95"
-                >
-                  <span>Open Workspace Dashboard</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-wrap items-center gap-3 mb-8">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            {isAuthenticated && user ? (
               <Link
-                href="/register"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-terracotta hover:bg-terracotta-dark text-white text-sm font-semibold transition-all shadow-sm"
+                href="/dashboard"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-sm bg-coral hover:bg-coral-hover text-white border-2 border-ink-border font-extrabold text-sm shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
               >
-                <span>Create Account</span>
+                <span>Open Workspace</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 rounded-sm bg-paper-light hover:bg-paper-dark text-ink border-2 border-ink-border font-bold text-sm shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/register"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-sm bg-coral hover:bg-coral-hover text-white border-2 border-ink-border font-extrabold text-sm shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                >
+                  <span>Create Account</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content Layout (Sidebar Features + Showcase Cards) */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Column: Feature Filters Card */}
+        <div className="lg:col-span-4 bg-paper-light border-2 border-ink-border rounded-sm p-6 shadow-retro-md">
+          <div className="border-b-2 border-ink-border pb-3 mb-5 flex items-center justify-between">
+            <h3 className="font-extrabold text-ink text-base uppercase tracking-wider">
+              Workspace Capabilities
+            </h3>
+            <span className="w-2.5 h-2.5 rounded-full bg-retroGreen border border-ink-border" />
+          </div>
+
+          <div className="space-y-4 text-xs font-semibold text-ink">
+            <div>
+              <p className="text-[11px] text-ink-muted font-bold uppercase mb-2">
+                Core Editorial Features
+              </p>
+              <ul className="space-y-2.5">
+                <li className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-sm border-2 border-ink-border bg-coral text-white flex items-center justify-center text-[10px] font-bold">
+                    ✓
+                  </div>
+                  <span>Rich-Text Formatting (Tiptap)</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-sm border-2 border-ink-border bg-coral text-white flex items-center justify-center text-[10px] font-bold">
+                    ✓
+                  </div>
+                  <span>Auto-Save Debounced Sync</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-sm border-2 border-ink-border bg-coral text-white flex items-center justify-center text-[10px] font-bold">
+                    ✓
+                  </div>
+                  <span>Clean Sans Typography</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="pt-3 border-t-2 border-ink-border">
+              <p className="text-[11px] text-ink-muted font-bold uppercase mb-2">
+                Collaboration &amp; Ingestion
+              </p>
+              <ul className="space-y-2.5">
+                <li className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-sm border-2 border-ink-border bg-retroBlue text-white flex items-center justify-center text-[10px] font-bold">
+                    ✓
+                  </div>
+                  <span>Role Permissions (Owner / Editor / Viewer)</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-sm border-2 border-ink-border bg-retroBlue text-white flex items-center justify-center text-[10px] font-bold">
+                    ✓
+                  </div>
+                  <span>Multi-Format File Import (.md, .txt, .docx)</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-sm border-2 border-ink-border bg-retroBlue text-white flex items-center justify-center text-[10px] font-bold">
+                    ✓
+                  </div>
+                  <span>Instant Revocation &amp; Transfer</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Reference-styled Feature Cards */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-extrabold text-ink">
+              Workspace Overview
+            </h2>
+            <span className="border-2 border-ink-border bg-paper-cream px-3 py-1 rounded-sm text-xs font-bold text-ink shadow-[1px_1px_0px_#171717]">
+              3 core modules
+            </span>
+          </div>
+
+          {/* Card 1: Editorial Atelier */}
+          <div className="bg-paper-light border-2 border-ink-border rounded-sm p-6 shadow-retro-md hover:shadow-retro-lg transition-all">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-sm bg-coral border-2 border-ink-border flex items-center justify-center text-white font-extrabold text-lg shadow-retro flex-shrink-0">
+                  <FileEdit className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <h3 className="text-lg font-bold text-ink">
+                      Distraction-Free Rich-Text Editor
+                    </h3>
+                    <span className="border border-ink-border bg-retroGreen text-white text-[11px] font-bold px-2 py-0.5 rounded-sm">
+                      Full Formatting
+                    </span>
+                    <span className="border border-ink-border bg-coral text-white text-[11px] font-bold px-2 py-0.5 rounded-sm">
+                      Autosave
+                    </span>
+                  </div>
+                  <p className="text-xs text-ink-muted font-medium">
+                    Editorial Atelier • Clean Typography
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-xs font-semibold text-ink-muted sm:text-right">
+                Editorial Surface
+              </div>
+            </div>
+
+            <ul className="text-xs sm:text-sm text-ink-soft space-y-1.5 mb-6 pl-4 font-normal">
+              <li>• Focused formatting toolbar featuring headings, inline styles, alignments, and lists</li>
+              <li>• Automatic background saving ensures seamless progress persistence at all times</li>
+            </ul>
+
+            <div className="flex justify-end pt-3 border-t border-ink-border/30">
               <Link
-                href="/login"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-forest-light hover:bg-forest-dark text-warmStone-light hover:text-white border border-warmStone/20 text-sm font-semibold transition-all"
+                href={isAuthenticated ? "/dashboard" : "/register"}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-sm bg-coral hover:bg-coral-hover text-white border-2 border-ink-border text-xs font-extrabold shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
               >
-                <span>Sign In</span>
+                <span>Start Writing</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
-          )}
+          </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-warmStone/15 font-mono text-xs text-warmStone-light/80">
-            <div>
-              <span className="block text-terracotta font-bold text-base sm:text-lg">
-                Secure Auth
-              </span>
-              <span>User Management</span>
+          {/* Card 2: Collaboration & Sharing */}
+          <div className="bg-paper-light border-2 border-ink-border rounded-sm p-6 shadow-retro-md hover:shadow-retro-lg transition-all">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-sm bg-retroBlue border-2 border-ink-border flex items-center justify-center text-white font-extrabold text-lg shadow-retro flex-shrink-0">
+                  <Share2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <h3 className="text-lg font-bold text-ink">
+                      Role-Based Document Collaboration
+                    </h3>
+                    <span className="border border-ink-border bg-retroBlue text-white text-[11px] font-bold px-2 py-0.5 rounded-sm">
+                      Owner &amp; Editor
+                    </span>
+                    <span className="border border-ink-border bg-retroGreen text-white text-[11px] font-bold px-2 py-0.5 rounded-sm">
+                      Viewer Guard
+                    </span>
+                  </div>
+                  <p className="text-xs text-ink-muted font-medium">
+                    Collaboration Engine • Secure Access
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-xs font-semibold text-ink-muted sm:text-right">
+                Team Sharing
+              </div>
             </div>
-            <div>
-              <span className="block text-sage font-bold text-base sm:text-lg">
-                Argon2id
-              </span>
-              <span>Password Hashing</span>
-            </div>
-            <div>
-              <span className="block text-white font-bold text-base sm:text-lg">
-                HS256 JWT
-              </span>
-              <span>Signed Bearer Tokens</span>
-            </div>
-            <div>
-              <span className="block text-warmStone font-bold text-base sm:text-lg">
-                Supabase
-              </span>
-              <span>PostgreSQL Schema</span>
+
+            <ul className="text-xs sm:text-sm text-ink-soft space-y-1.5 mb-6 pl-4 font-normal">
+              <li>• Share documents securely with team members using granular Owner, Editor, and Viewer permissions</li>
+              <li>• Manage collaborators, update access privileges, or revoke sharing instantly</li>
+            </ul>
+
+            <div className="flex justify-end pt-3 border-t border-ink-border/30">
+              <Link
+                href={isAuthenticated ? "/dashboard" : "/register"}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-sm bg-coral hover:bg-coral-hover text-white border-2 border-ink-border text-xs font-extrabold shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+              >
+                <span>Share Documents</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </div>
-        </div>
 
-        {/* Decorative backdrop accent */}
-        <div className="absolute -bottom-16 -right-16 w-80 h-80 rounded-full bg-terracotta/10 pointer-events-none blur-3xl"></div>
-      </section>
+          {/* Card 3: Multi-Format File Ingestion */}
+          <div className="bg-paper-light border-2 border-ink-border rounded-sm p-6 shadow-retro-md hover:shadow-retro-lg transition-all">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-sm bg-retroGreen border-2 border-ink-border flex items-center justify-center text-white font-extrabold text-lg shadow-retro flex-shrink-0">
+                  <UploadCloud className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <h3 className="text-lg font-bold text-ink">
+                      Universal Document Import
+                    </h3>
+                    <span className="border border-ink-border bg-retroBlue text-white text-[11px] font-bold px-2 py-0.5 rounded-sm">
+                      Markdown
+                    </span>
+                    <span className="border border-ink-border bg-coral text-white text-[11px] font-bold px-2 py-0.5 rounded-sm">
+                      DOCX &amp; TXT
+                    </span>
+                  </div>
+                  <p className="text-xs text-ink-muted font-medium">
+                    File Ingestion • Structure Preservation
+                  </p>
+                </div>
+              </div>
 
-      {/* Live System Diagnostics */}
-      <section className="mb-10">
-        <StatusIndicator />
-      </section>
-
-      {/* Security & Architecture Capabilities */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="bg-white border border-borderTone rounded-2xl p-6 shadow-sm">
-          <div className="w-10 h-10 rounded-xl bg-forest-light text-sage flex items-center justify-center mb-4">
-            <KeyRound className="w-5 h-5" />
-          </div>
-          <h3 className="text-lg font-bold text-forest mb-2 font-serif">
-            Argon2 Password Hashing
-          </h3>
-          <p className="text-xs sm:text-sm text-mutedText leading-relaxed mb-4">
-            Passwords are cryptographically salted and hashed using Argon2id
-            with 64 MiB memory cost and 3 iterations, completely preventing
-            plaintext exposure.
-          </p>
-          <ul className="text-xs font-mono text-forest space-y-1 bg-warmStone-light p-3 rounded-lg">
-            <li>• Memory-hard Argon2id</li>
-            <li>• Salted per-user hash</li>
-            <li>• Zero plaintext storage</li>
-          </ul>
-        </div>
-
-        <div className="bg-white border border-borderTone rounded-2xl p-6 shadow-sm">
-          <div className="w-10 h-10 rounded-xl bg-forest text-white flex items-center justify-center mb-4">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <h3 className="text-lg font-bold text-forest mb-2 font-serif">
-            JWT Session Management
-          </h3>
-          <p className="text-xs sm:text-sm text-mutedText leading-relaxed mb-4">
-            Stateless JWT access tokens signed with a cryptographically secure
-            32-byte secret. Tokens validate user identity and enforce 30-minute expiration.
-          </p>
-          <ul className="text-xs font-mono text-forest space-y-1 bg-warmStone-light p-3 rounded-lg">
-            <li>• HS256 JWT signature</li>
-            <li>• Auto-generated 32B key</li>
-            <li>• GET /api/v1/auth/me guard</li>
-          </ul>
-        </div>
-
-        <div className="bg-white border border-borderTone rounded-2xl p-6 shadow-sm">
-          <div className="w-10 h-10 rounded-xl bg-terracotta text-white flex items-center justify-center mb-4">
-            <UserCheck className="w-5 h-5" />
-          </div>
-          <h3 className="text-lg font-bold text-forest mb-2 font-serif">
-            Identity &amp; User Model
-          </h3>
-          <p className="text-xs sm:text-sm text-mutedText leading-relaxed mb-4">
-            SQLAlchemy 2.0 User model with UUID primary keys, unique email
-            indexes, and full Alembic migration for Supabase PostgreSQL.
-          </p>
-          <ul className="text-xs font-mono text-forest space-y-1 bg-warmStone-light p-3 rounded-lg">
-            <li>• Table: users (UUID PK)</li>
-            <li>• Duplicate email guard</li>
-            <li>• Migration: 0001_create_users</li>
-          </ul>
-        </div>
-      </section>
-
-      {/* Enterprise-Grade Platform Capabilities */}
-      <section className="bg-warmStone-light border border-borderTone rounded-2xl p-6 sm:p-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-forest text-sage flex items-center justify-center flex-shrink-0 mt-1">
-              <ShieldCheck className="w-5 h-5" />
+              <div className="text-xs font-semibold text-ink-muted sm:text-right">
+                Multi-Format
+              </div>
             </div>
-            <div>
-              <h4 className="text-base sm:text-lg font-bold text-forest">
-                Enterprise-Grade Document Workspace
-              </h4>
-              <p className="text-xs sm:text-sm text-mutedText max-w-2xl leading-relaxed">
-                Draftly delivers seamless rich-text editing, multi-format file import (TXT, Markdown, DOCX),
-                role-based sharing permissions (Owner, Editor, Viewer), and reliable cloud persistence built on Next.js, FastAPI, and Supabase PostgreSQL.
-              </p>
+
+            <ul className="text-xs sm:text-sm text-ink-soft space-y-1.5 mb-6 pl-4 font-normal">
+              <li>• Seamlessly import existing notes and manuscripts directly into your Draftly workspace</li>
+              <li>• Preserves semantic document structure, headings, paragraphs, and list hierarchies</li>
+            </ul>
+
+            <div className="flex justify-end pt-3 border-t border-ink-border/30">
+              <Link
+                href={isAuthenticated ? "/dashboard" : "/register"}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-sm bg-coral hover:bg-coral-hover text-white border-2 border-ink-border text-xs font-extrabold shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+              >
+                <span>Import Files</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
-          </div>
-          <div className="flex items-center gap-2 self-end sm:self-center font-mono text-xs font-semibold px-3 py-1.5 rounded-lg bg-sage-light text-sage-dark border border-sage/40">
-            Production Ready
           </div>
         </div>
       </section>

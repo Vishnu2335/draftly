@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { AlertCircle, ArrowRight, Check, Lock, Mail, User } from "lucide-react";
+import { AlertCircle, ArrowRight, Check, Lock, Mail, User, Loader2 } from "lucide-react";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -52,7 +52,6 @@ export default function RegisterPage() {
     setSubmitting(true);
     try {
       await register(username.trim(), email.trim(), password);
-      // register() logs user in and redirects to "/"
     } catch (err: unknown) {
       setApiError(
         err instanceof Error
@@ -65,27 +64,27 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-140px)] flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 bg-ivory">
-      <div className="max-w-md w-full bg-white border border-borderTone rounded-3xl p-8 sm:p-10 shadow-sm relative">
+    <div className="min-h-[calc(100vh-140px)] flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 bg-paper">
+      <div className="max-w-md w-full bg-paper-light border-2 border-ink-border rounded-sm p-8 sm:p-10 shadow-retro-lg relative">
         {/* Card Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex w-12 h-12 rounded-xl bg-terracotta text-white items-center justify-center font-serif font-bold text-2xl shadow-sm mb-4">
+          <div className="inline-flex w-12 h-12 rounded-sm bg-coral border-2 border-ink-border text-white items-center justify-center font-sans font-extrabold text-2xl shadow-retro mb-4">
             D
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold font-serif text-forest tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-extrabold font-sans text-ink tracking-tight">
             Create Your Account
           </h2>
-          <p className="text-xs sm:text-sm text-mutedText mt-1">
+          <p className="text-xs sm:text-sm text-ink-muted mt-1 font-medium">
             Join Draftly for focused, modern document authoring
           </p>
         </div>
 
         {/* Error Banners */}
         {(clientError || apiError) && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs sm:text-sm flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <strong>Validation:</strong> {clientError || apiError}
+          <div className="mb-6 p-4 rounded-sm bg-coral-light border-2 border-ink-border text-ink text-xs sm:text-sm flex items-start gap-3 shadow-retro">
+            <AlertCircle className="w-5 h-5 text-coral flex-shrink-0 mt-0.5" />
+            <div className="flex-1 font-medium">
+              <strong className="font-bold">Validation:</strong> {clientError || apiError}
             </div>
           </div>
         )}
@@ -95,24 +94,23 @@ export default function RegisterPage() {
           <div>
             <label
               htmlFor="username"
-              className="block text-xs font-semibold text-forest uppercase tracking-wider mb-1.5"
+              className="block text-xs font-bold text-ink uppercase tracking-wider mb-1.5"
             >
               Username
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-mutedText">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-muted">
                 <User className="w-4 h-4" />
               </div>
               <input
                 id="username"
-                name="username"
                 type="text"
                 autoComplete="username"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="e.g. elena_author"
-                className="block w-full pl-10 pr-3.5 py-2.5 bg-warmStone-light/40 border border-borderTone rounded-xl text-forest text-sm placeholder:text-mutedText/60 focus:outline-none focus:border-terracotta focus:bg-white transition-all"
+                placeholder="alice_writer"
+                className="w-full pl-10 pr-3.5 py-2.5 rounded-sm bg-paper-light border-2 border-ink-border text-sm text-ink font-medium placeholder:text-ink-muted/60 focus:bg-white focus:outline-none focus:shadow-retro transition-all"
               />
             </div>
           </div>
@@ -120,24 +118,23 @@ export default function RegisterPage() {
           <div>
             <label
               htmlFor="email"
-              className="block text-xs font-semibold text-forest uppercase tracking-wider mb-1.5"
+              className="block text-xs font-bold text-ink uppercase tracking-wider mb-1.5"
             >
               Email Address
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-mutedText">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-muted">
                 <Mail className="w-4 h-4" />
               </div>
               <input
                 id="email"
-                name="email"
                 type="email"
                 autoComplete="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="elena@example.com"
-                className="block w-full pl-10 pr-3.5 py-2.5 bg-warmStone-light/40 border border-borderTone rounded-xl text-forest text-sm placeholder:text-mutedText/60 focus:outline-none focus:border-terracotta focus:bg-white transition-all"
+                placeholder="alice@example.com"
+                className="w-full pl-10 pr-3.5 py-2.5 rounded-sm bg-paper-light border-2 border-ink-border text-sm text-ink font-medium placeholder:text-ink-muted/60 focus:bg-white focus:outline-none focus:shadow-retro transition-all"
               />
             </div>
           </div>
@@ -145,24 +142,23 @@ export default function RegisterPage() {
           <div>
             <label
               htmlFor="password"
-              className="block text-xs font-semibold text-forest uppercase tracking-wider mb-1.5"
+              className="block text-xs font-bold text-ink uppercase tracking-wider mb-1.5"
             >
-              Password (min. 8 characters)
+              Password (8+ chars)
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-mutedText">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-muted">
                 <Lock className="w-4 h-4" />
               </div>
               <input
                 id="password"
-                name="password"
                 type="password"
                 autoComplete="new-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="block w-full pl-10 pr-3.5 py-2.5 bg-warmStone-light/40 border border-borderTone rounded-xl text-forest text-sm placeholder:text-mutedText/60 focus:outline-none focus:border-terracotta focus:bg-white transition-all"
+                className="w-full pl-10 pr-3.5 py-2.5 rounded-sm bg-paper-light border-2 border-ink-border text-sm text-ink font-medium placeholder:text-ink-muted/60 focus:bg-white focus:outline-none focus:shadow-retro transition-all"
               />
             </div>
           </div>
@@ -170,53 +166,57 @@ export default function RegisterPage() {
           <div>
             <label
               htmlFor="passwordConfirm"
-              className="block text-xs font-semibold text-forest uppercase tracking-wider mb-1.5"
+              className="block text-xs font-bold text-ink uppercase tracking-wider mb-1.5"
             >
               Confirm Password
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-mutedText">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-muted">
                 <Lock className="w-4 h-4" />
               </div>
               <input
                 id="passwordConfirm"
-                name="passwordConfirm"
                 type="password"
                 autoComplete="new-password"
                 required
                 value={passwordConfirm}
                 onChange={(e) => setPasswordConfirm(e.target.value)}
                 placeholder="••••••••••••"
-                className="block w-full pl-10 pr-3.5 py-2.5 bg-warmStone-light/40 border border-borderTone rounded-xl text-forest text-sm placeholder:text-mutedText/60 focus:outline-none focus:border-terracotta focus:bg-white transition-all"
+                className="w-full pl-10 pr-3.5 py-2.5 rounded-sm bg-paper-light border-2 border-ink-border text-sm text-ink font-medium placeholder:text-ink-muted/60 focus:bg-white focus:outline-none focus:shadow-retro transition-all"
               />
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full mt-2 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-terracotta hover:bg-terracotta-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-terracotta transition-all shadow-sm cursor-pointer disabled:opacity-60"
-          >
-            {submitting ? (
-              <span>Creating Account...</span>
-            ) : (
-              <>
-                <span>Create Draftly Account</span>
-                <ArrowRight className="w-4 h-4" />
-              </>
-            )}
-          </button>
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-sm bg-coral hover:bg-coral-hover text-white border-2 border-ink-border font-extrabold text-sm shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Creating Account...</span>
+                </>
+              ) : (
+                <>
+                  <span>Create Draftly Account</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </div>
         </form>
 
-        {/* Footer Link */}
-        <div className="mt-8 pt-6 border-t border-borderTone text-center">
-          <p className="text-xs text-mutedText">
+        {/* Footer Note */}
+        <div className="mt-8 pt-6 border-t-2 border-ink-border text-center">
+          <p className="text-xs text-ink-muted font-medium">
             Already have an account?{" "}
             <Link
               href="/login"
-              className="font-semibold text-forest hover:text-forest-light transition-colors"
+              className="text-coral font-bold hover:underline"
             >
-              Sign in
+              Sign In
             </Link>
           </p>
         </div>
@@ -224,4 +224,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-

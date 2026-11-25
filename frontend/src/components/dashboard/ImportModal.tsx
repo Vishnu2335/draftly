@@ -106,19 +106,19 @@ export default function ImportModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-forest-dark/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-warmStone shadow-xl space-y-6">
+    <div className="fixed inset-0 bg-ink/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+      <div className="bg-paper-light rounded-sm max-w-lg w-full p-6 sm:p-8 border-2 border-ink-border shadow-retro-xl space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pb-3 border-b-2 border-ink-border">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-sage/20 text-sage-dark flex items-center justify-center">
-              <UploadCloud className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-sm bg-coral border-2 border-ink-border text-white flex items-center justify-center shadow-retro">
+              <UploadCloud className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-serif font-bold text-forest text-lg">
+              <h3 className="font-extrabold text-ink text-base tracking-tight">
                 Import Document
               </h3>
-              <p className="text-xs text-forest/60">
+              <p className="text-xs text-ink-muted font-medium">
                 Word (.docx), Markdown (.md), or Plain Text (.txt)
               </p>
             </div>
@@ -126,7 +126,7 @@ export default function ImportModal({
           <button
             onClick={onClose}
             disabled={isUploading}
-            className="text-forest/40 hover:text-forest disabled:opacity-30"
+            className="text-ink-muted hover:text-ink disabled:opacity-30 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -134,8 +134,8 @@ export default function ImportModal({
 
         {/* Error notification */}
         {errorMsg && (
-          <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2.5">
-            <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-sm bg-coral-light border-2 border-ink-border text-xs text-ink flex items-start gap-2.5 shadow-retro font-medium">
+            <AlertCircle className="w-4 h-4 text-coral shrink-0 mt-0.5" />
             <div className="flex-1">{errorMsg}</div>
           </div>
         )}
@@ -147,10 +147,10 @@ export default function ImportModal({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
+            className={`border-2 border-dashed rounded-sm p-8 text-center cursor-pointer transition-all ${
               isDragging
-                ? "border-forest bg-sage/10 scale-[0.99]"
-                : "border-warmStone hover:border-forest/50 hover:bg-ivory/60"
+                ? "border-ink-border bg-coral-light scale-[0.99]"
+                : "border-ink-border bg-paper-cream/40 hover:bg-paper-cream/80"
             }`}
           >
             <input
@@ -160,31 +160,31 @@ export default function ImportModal({
               onChange={handleFileInputChange}
               className="hidden"
             />
-            <div className="w-12 h-12 rounded-2xl bg-ivory border border-warmStone text-sage-dark flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-sm bg-paper-light border-2 border-ink-border text-coral flex items-center justify-center mx-auto mb-3 shadow-retro">
               <FileText className="w-6 h-6" />
             </div>
-            <h4 className="font-serif font-semibold text-forest text-sm mb-1">
+            <h4 className="font-extrabold text-ink text-sm mb-1">
               Click to browse or drop your file here
             </h4>
-            <p className="text-xs text-forest/50 font-light mb-4">
+            <p className="text-xs text-ink-muted font-medium mb-4">
               Imports preserve headings, bold, italic, underline, and lists.
             </p>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ivory border border-warmStone text-[11px] font-mono text-forest/70">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-sm bg-paper-light border-2 border-ink-border text-[11px] font-bold text-ink shadow-[1px_1px_0px_#171717]">
               <span>Max file size: 10 MB</span>
             </div>
           </div>
         ) : (
           /* Selected File Preview Card */
-          <div className="p-4 rounded-2xl bg-ivory border border-warmStone flex items-center justify-between gap-3">
+          <div className="p-4 rounded-sm bg-paper-cream/60 border-2 border-ink-border flex items-center justify-between gap-3 shadow-retro">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-forest text-white flex items-center justify-center shrink-0">
-                <FileCheck className="w-5 h-5 text-sage" />
+              <div className="w-10 h-10 rounded-sm bg-coral border-2 border-ink-border text-white flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#171717]">
+                <FileCheck className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <p className="font-serif font-bold text-forest text-sm truncate">
+                <p className="font-bold text-ink text-sm truncate">
                   {selectedFile.name}
                 </p>
-                <p className="text-xs text-forest/50 font-mono">
+                <p className="text-xs text-ink-muted font-mono font-medium">
                   {formatFileSize(selectedFile.size)} • Ready for import
                 </p>
               </div>
@@ -193,7 +193,7 @@ export default function ImportModal({
             <button
               onClick={() => setSelectedFile(null)}
               disabled={isUploading}
-              className="p-1.5 rounded-lg text-forest/40 hover:text-red-600 hover:bg-red-50 transition-colors"
+              className="p-1.5 rounded-sm text-ink-muted hover:text-coral hover:bg-coral-light border border-transparent hover:border-ink-border transition-colors cursor-pointer"
               title="Remove file"
             >
               <X className="w-4 h-4" />
@@ -202,8 +202,8 @@ export default function ImportModal({
         )}
 
         {/* Action Controls */}
-        <div className="flex items-center justify-between pt-2 border-t border-warmStone/60 text-xs">
-          <div className="text-forest/50 font-mono">
+        <div className="flex items-center justify-between pt-3 border-t-2 border-ink-border text-xs">
+          <div className="text-ink-muted font-bold">
             Supported: .txt, .md, .docx
           </div>
           <div className="flex items-center gap-3">
@@ -211,7 +211,7 @@ export default function ImportModal({
               type="button"
               onClick={onClose}
               disabled={isUploading}
-              className="px-4 py-2 rounded-xl border border-warmStone text-xs font-semibold text-forest hover:bg-ivory transition-colors disabled:opacity-40"
+              className="px-4 py-2 rounded-sm border-2 border-ink-border text-xs font-bold text-ink bg-paper-light hover:bg-paper-cream shadow-retro transition-colors disabled:opacity-40 cursor-pointer"
             >
               Cancel
             </button>
@@ -219,10 +219,10 @@ export default function ImportModal({
               type="button"
               onClick={handleUpload}
               disabled={!selectedFile || isUploading}
-              className="px-5 py-2 rounded-xl bg-forest hover:bg-forest-dark text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-xs disabled:opacity-40"
+              className="px-5 py-2 rounded-sm bg-coral hover:bg-coral-hover text-white text-xs font-extrabold border-2 border-ink-border shadow-retro flex items-center gap-2 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-40 cursor-pointer"
             >
               {isUploading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>{isUploading ? "Importing Document..." : "Import & Open in Atelier"}</span>
+              <span>{isUploading ? "Importing Document..." : "Import Document"}</span>
             </button>
           </div>
         </div>
@@ -230,4 +230,3 @@ export default function ImportModal({
     </div>
   );
 }
-

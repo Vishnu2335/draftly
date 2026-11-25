@@ -9,53 +9,102 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Reference Retro Editorial Palette
+        paper: {
+          DEFAULT: "#F7F3EA", // Main background: warm off-white
+          cream: "#F1E6D0",   // Secondary background: light warm cream
+          light: "#FBF8F1",   // Cards & Input background: light cream
+          dark: "#E6DBC3",    // Darker cream for borders/accents
+        },
+        ink: {
+          DEFAULT: "#111111", // Primary text: almost black
+          border: "#171717",  // Borders: dark black
+          muted: "#77736C",   // Muted text: warm grey
+          soft: "#3F3D39",    // Secondary body text
+        },
+        coral: {
+          DEFAULT: "#F15B5D", // Primary accent: coral red
+          hover: "#E0484A",   // Hover coral
+          light: "#FDECEC",   // Light coral tint
+          dark: "#C93B3D",    // Deep coral
+        },
+        retroBlue: {
+          DEFAULT: "#1769B0", // Secondary accent: deep blue
+          light: "#E3EFFB",   // Blue tint
+          dark: "#12548D",
+        },
+        retroGreen: {
+          DEFAULT: "#269B72", // Supporting accent: muted green
+          light: "#E4F6EF",   // Green tint
+          dark: "#1E825F",
+        },
+        retroSand: "#EFE7D8",
+
+        // Compatibility Aliases for Smooth Fallback
         forest: {
-          DEFAULT: "#202923",
-          dark: "#151C17",
-          light: "#2C3931",
-          hover: "#2A362E",
+          DEFAULT: "#171717",
+          dark: "#111111",
+          light: "#2A2A2A",
+          hover: "#333333",
         },
         ivory: {
-          DEFAULT: "#F8F7F2",
-          dark: "#EFECE3",
-          light: "#FCFBF8",
+          DEFAULT: "#F7F3EA",
+          dark: "#F1E6D0",
+          light: "#FBF8F1",
         },
         warmStone: {
-          DEFAULT: "#E8E5DB",
-          light: "#F4F2ED",
-          dark: "#D2CDC0",
+          DEFAULT: "#F1E6D0",
+          light: "#FBF8F1",
+          dark: "#E2D7C0",
         },
         sage: {
-          DEFAULT: "#A6B69F",
-          light: "#E7ECE4",
-          dark: "#788A72",
+          DEFAULT: "#269B72",
+          light: "#E4F6EF",
+          dark: "#1E825F",
         },
         terracotta: {
-          DEFAULT: "#C58C65",
-          light: "#F7EFE9",
-          dark: "#9F6642",
+          DEFAULT: "#F15B5D",
+          light: "#FDECEC",
+          dark: "#C93B3D",
         },
-        charcoal: "#202923",
-        mutedText: "#5D685E",
-        borderTone: "#E2DFD5",
+        charcoal: "#111111",
+        mutedText: "#77736C",
+        borderTone: "#171717",
       },
       fontFamily: {
-        serif: ["Newsreader", "Georgia", "Cambria", "serif"],
         sans: [
-          "Inter",
+          '"Plus Jakarta Sans"',
+          "Outfit",
           "-apple-system",
           "BlinkMacSystemFont",
           "Segoe UI",
           "Roboto",
           "sans-serif",
         ],
+        serif: [
+          '"Plus Jakarta Sans"',
+          "Outfit",
+          "Newsreader",
+          "serif",
+        ],
         mono: [
-          "JetBrains Mono",
+          '"JetBrains Mono"',
           "Fira Code",
-          "Cascadia Code",
           "Consolas",
           "monospace",
         ],
+      },
+      boxShadow: {
+        retro: "2px 2px 0px #171717",
+        "retro-md": "3px 3px 0px #171717",
+        "retro-lg": "5px 5px 0px #171717",
+        "retro-xl": "7px 7px 0px #171717",
+      },
+      borderRadius: {
+        sm: "3px",
+        DEFAULT: "4px",
+        md: "6px",
+        lg: "8px",
       },
       maxWidth: {
         measure: "760px",
@@ -66,4 +115,3 @@ const config: Config = {
 };
 
 export default config;
-

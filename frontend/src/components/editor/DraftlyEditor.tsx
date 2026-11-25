@@ -103,7 +103,7 @@ export default function DraftlyEditor({
     content: initialContent && initialContent.type ? initialContent : { type: "doc", content: [] },
     editorProps: {
       attributes: {
-        class: "tiptap focus:outline-none max-w-[760px] mx-auto min-h-[500px] text-forest font-sans leading-relaxed selection:bg-sage/30",
+        class: "tiptap focus:outline-none max-w-[760px] mx-auto min-h-[500px] text-ink font-sans leading-relaxed selection:bg-coral-light",
       },
     },
     onUpdate: ({ editor }) => {
@@ -169,14 +169,14 @@ export default function DraftlyEditor({
   return (
     <div className="space-y-6">
       {/* Sticky Formatting & Telemetry Action Bar */}
-      <div className="sticky top-20 z-20 flex flex-wrap items-center justify-between gap-3 bg-white/90 backdrop-blur-md p-2 rounded-2xl border border-warmStone/70 shadow-xs">
+      <div className="sticky top-20 z-20 flex flex-wrap items-center justify-between gap-3 bg-paper-light border-2 border-ink-border p-2 rounded-sm shadow-retro">
         {readOnly ? (
-          <div className="flex items-center justify-between w-full px-3 py-1.5 text-xs text-forest/70 font-mono">
+          <div className="flex items-center justify-between w-full px-3 py-1.5 text-xs text-ink font-bold">
             <div className="flex items-center gap-2">
-              <Eye className="w-4 h-4 text-forest/50" />
-              <span>Read-Only Atelier • Viewer Access Mode</span>
+              <Eye className="w-4 h-4 text-coral" />
+              <span>Read-Only Workspace • Viewer Access Mode</span>
             </div>
-            <span className="text-[11px] text-forest/50 bg-ivory px-2.5 py-0.5 rounded-full border border-warmStone">
+            <span className="text-[11px] text-ink bg-paper-cream px-2.5 py-0.5 rounded-sm border border-ink-border">
               Content editing locked
             </span>
           </div>
@@ -187,28 +187,28 @@ export default function DraftlyEditor({
             {/* Save Status & Manual Save Control */}
             <div className="flex items-center gap-3 pr-2">
               {saveStatus === "saving" && (
-                <span className="inline-flex items-center gap-1.5 text-xs font-mono text-terracotta">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-coral">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Saving...</span>
+                  <span>Autosaving...</span>
                 </span>
               )}
 
               {saveStatus === "saved" && (
-                <span className="inline-flex items-center gap-1.5 text-xs font-mono text-sage-dark font-medium">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-retroGreen">
                   <Check className="w-3.5 h-3.5" />
-                  <span>Saved</span>
+                  <span>All Changes Saved</span>
                 </span>
               )}
 
               {saveStatus === "unsaved" && (
-                <span className="inline-flex items-center gap-1.5 text-xs font-mono text-forest/50">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-muted">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>Unsaved changes</span>
+                  <span>Unsaved edits</span>
                 </span>
               )}
 
               {saveStatus === "error" && (
-                <span className="inline-flex items-center gap-1.5 text-xs font-mono text-red-600">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-coral">
                   <AlertCircle className="w-3.5 h-3.5" />
                   <span>Save failed</span>
                 </span>
@@ -221,7 +221,7 @@ export default function DraftlyEditor({
                   executeSave();
                 }}
                 disabled={isSavingRef.current || saveStatus === "saved"}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-forest hover:bg-forest-dark text-white text-xs font-semibold disabled:opacity-40 transition-all shadow-xs"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-coral hover:bg-coral-hover text-white text-xs font-extrabold border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-40 cursor-pointer"
                 title="Manual Save (Ctrl+S)"
               >
                 <Save className="w-3.5 h-3.5" />
@@ -232,14 +232,14 @@ export default function DraftlyEditor({
         )}
       </div>
 
-      {/* Focused 760px Editorial Writing Canvas */}
-      <div className="bg-white rounded-3xl p-8 sm:p-14 border border-warmStone shadow-sm min-h-[580px]">
+      {/* Focused Editorial Writing Canvas */}
+      <div className="bg-white rounded-sm p-8 sm:p-14 border-2 border-ink-border shadow-retro-md min-h-[580px]">
         <EditorContent editor={editor} />
       </div>
 
       {/* Editor Footer Telemetry: Words, Characters, Autosave Status */}
-      <div className="flex items-center justify-between text-xs font-mono text-forest/50 px-3">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between text-xs font-bold text-ink-muted px-2">
+        <div className="flex items-center gap-3">
           <span>{stats.words} words</span>
           <span>•</span>
           <span>{stats.chars} characters</span>

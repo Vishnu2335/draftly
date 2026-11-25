@@ -149,9 +149,9 @@ export default function DocumentDetailPage() {
   if (authLoading || (loading && !errorMsg)) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center">
-        <Loader2 className="w-8 h-8 text-forest animate-spin mb-3" />
-        <p className="text-sm font-medium text-forest/70">
-          Loading document atelier...
+        <Loader2 className="w-8 h-8 text-ink animate-spin mb-3" />
+        <p className="text-sm font-bold text-ink-muted">
+          Loading document workspace...
         </p>
       </div>
     );
@@ -160,19 +160,19 @@ export default function DocumentDetailPage() {
   if (errorMsg || !document) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center space-y-4">
-        <div className="w-14 h-14 rounded-2xl bg-red-100 text-red-600 mx-auto flex items-center justify-center">
+        <div className="w-14 h-14 rounded-sm bg-coral-light border-2 border-ink-border text-coral mx-auto flex items-center justify-center shadow-retro">
           <AlertCircle className="w-7 h-7" />
         </div>
-        <h2 className="text-2xl font-serif font-bold text-forest">
+        <h2 className="text-2xl font-extrabold font-sans text-ink">
           Document Unavailable
         </h2>
-        <p className="text-sm text-forest/70 max-w-md mx-auto">
+        <p className="text-xs sm:text-sm text-ink-muted max-w-md mx-auto font-medium">
           {errorMsg || "This document does not exist or you do not have permission to view it."}
         </p>
         <div className="pt-4">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-forest hover:bg-forest-dark text-white text-sm font-semibold transition-all shadow-sm"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm bg-coral hover:bg-coral-hover text-white border-2 border-ink-border font-extrabold text-sm shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Return to Workspace Dashboard</span>
@@ -188,15 +188,15 @@ export default function DocumentDetailPage() {
   const isViewer = userRole === "viewer";
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col bg-ivory">
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col bg-paper">
       {/* Top Document Header Bar */}
-      <header className="bg-white border-b border-warmStone/70 sticky top-16 z-30 px-4 sm:px-8 py-3.5 shadow-2xs">
+      <header className="bg-paper-cream border-b-2 border-ink-border sticky top-16 z-30 px-4 sm:px-8 py-3.5">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Left: Back & Editable Title (Editable for Owner only) */}
+          {/* Left: Back & Editable Title */}
           <div className="flex items-center gap-3 min-w-0">
             <Link
               href="/dashboard"
-              className="p-2 rounded-xl text-forest/60 hover:text-forest hover:bg-ivory border border-warmStone/60 transition-colors shrink-0"
+              className="p-2 rounded-sm text-ink hover:bg-paper-light border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all shrink-0"
               title="Return to Dashboard"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -213,12 +213,12 @@ export default function DocumentDetailPage() {
                   onChange={(e) => setTitleInput(e.target.value)}
                   onBlur={() => handleSaveTitle()}
                   autoFocus
-                  className="px-3 py-1.5 rounded-lg border border-forest text-base font-serif font-bold text-forest bg-ivory focus:outline-none w-full"
+                  className="px-3 py-1.5 rounded-sm border-2 border-ink-border text-base font-extrabold text-ink bg-paper-light focus:outline-none focus:bg-white w-full"
                 />
                 <button
                   type="submit"
                   disabled={savingTitle}
-                  className="p-2 rounded-lg bg-forest text-white hover:bg-forest-dark"
+                  className="p-2 rounded-sm bg-coral text-white border-2 border-ink-border shadow-retro hover:bg-coral-hover cursor-pointer"
                   title="Save title"
                 >
                   {savingTitle ? (
@@ -234,8 +234,8 @@ export default function DocumentDetailPage() {
                   onClick={() => {
                     if (isOwner) setIsEditingTitle(true);
                   }}
-                  className={`text-lg sm:text-xl font-serif font-bold text-forest truncate ${
-                    isOwner ? "cursor-pointer hover:text-terracotta transition-colors" : ""
+                  className={`text-lg sm:text-xl font-extrabold text-ink truncate ${
+                    isOwner ? "cursor-pointer hover:text-coral transition-colors" : ""
                   }`}
                   title={isOwner ? "Click to rename document" : "Document Title"}
                 >
@@ -244,7 +244,7 @@ export default function DocumentDetailPage() {
                 {isOwner && (
                   <button
                     onClick={() => setIsEditingTitle(true)}
-                    className="opacity-0 group-hover:opacity-100 p-1 text-forest/40 hover:text-forest transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 p-1 text-ink-muted hover:text-ink transition-opacity cursor-pointer"
                     title="Rename document"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
@@ -258,28 +258,28 @@ export default function DocumentDetailPage() {
           <div className="flex items-center gap-3 self-end sm:self-auto">
             {/* RBAC Role Indicator for non-owners */}
             {isEditor && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-sm text-xs font-bold bg-retroGreen text-white border-2 border-ink-border shadow-retro">
                 Editor Access
               </span>
             )}
             {isViewer && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-warmStone/40 text-forest border border-warmStone">
-                <Eye className="w-3.5 h-3.5 text-forest/60" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-sm text-xs font-bold bg-paper-light text-ink border-2 border-ink-border shadow-retro">
+                <Eye className="w-3.5 h-3.5 text-coral" />
                 <span>Viewer (Read-only)</span>
               </span>
             )}
 
             {document.is_deleted ? (
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-terracotta/20 text-terracotta-dark font-semibold">
+                <span className="text-xs font-bold px-2.5 py-1 rounded-sm bg-coral text-white border-2 border-ink-border shadow-retro">
                   In Trash
                 </span>
                 {isOwner && (
                   <button
                     onClick={handleRestoreFromTrash}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-forest hover:bg-forest-dark text-white text-xs font-semibold transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-paper-light hover:bg-paper-cream text-ink text-xs font-bold border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                   >
-                    <RotateCcw className="w-3.5 h-3.5" />
+                    <RotateCcw className="w-3.5 h-3.5 text-retroGreen" />
                     <span>Restore</span>
                   </button>
                 )}
@@ -288,29 +288,29 @@ export default function DocumentDetailPage() {
               <>
                 {/* Save status badge (for Owner and Editor) */}
                 {!isViewer && (
-                  <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-ivory border border-warmStone text-xs font-mono">
+                  <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm border-2 border-ink-border text-xs font-bold shadow-retro bg-paper-light">
                     {editorSaveStatus === "saving" && (
                       <>
-                        <Loader2 className="w-3 h-3 text-terracotta animate-spin" />
-                        <span className="text-terracotta font-medium">Autosaving...</span>
+                        <Loader2 className="w-3 h-3 text-coral animate-spin" />
+                        <span className="text-coral">Autosaving...</span>
                       </>
                     )}
                     {editorSaveStatus === "saved" && (
                       <>
-                        <Check className="w-3 h-3 text-sage-dark" />
-                        <span className="text-sage-dark font-medium">All Changes Saved</span>
+                        <Check className="w-3 h-3 text-retroGreen" />
+                        <span className="text-retroGreen">All Changes Saved</span>
                       </>
                     )}
                     {editorSaveStatus === "unsaved" && (
                       <>
-                        <Clock className="w-3 h-3 text-forest/40" />
-                        <span className="text-forest/60">Unsaved edits</span>
+                        <Clock className="w-3 h-3 text-ink-muted" />
+                        <span className="text-ink-muted">Unsaved edits</span>
                       </>
                     )}
                     {editorSaveStatus === "error" && (
                       <>
-                        <AlertCircle className="w-3 h-3 text-red-600" />
-                        <span className="text-red-600 font-medium">Save issue</span>
+                        <AlertCircle className="w-3 h-3 text-coral" />
+                        <span className="text-coral">Save issue</span>
                       </>
                     )}
                   </div>
@@ -321,7 +321,7 @@ export default function DocumentDetailPage() {
                   <>
                     <button
                       onClick={() => setIsShareModalOpen(true)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-forest hover:bg-forest-dark text-white text-xs font-semibold shadow-xs transition"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-sm bg-coral hover:bg-coral-hover text-white text-xs font-extrabold border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition cursor-pointer"
                       title="Share document and manage collaborators"
                     >
                       <Users className="w-3.5 h-3.5" />
@@ -331,7 +331,7 @@ export default function DocumentDetailPage() {
                     <button
                       onClick={handleMoveToTrash}
                       disabled={deleting}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-warmStone text-xs font-medium text-forest/70 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm border-2 border-ink-border text-xs font-bold text-ink bg-paper-light hover:bg-coral-light hover:text-coral shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-colors cursor-pointer"
                       title="Move document to trash"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -348,21 +348,21 @@ export default function DocumentDetailPage() {
       {/* Main Writing Canvas */}
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Document Metadata Bar */}
-        <div className="bg-white rounded-2xl p-3.5 border border-warmStone/70 mb-6 flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-forest/70 shadow-2xs">
+        <div className="bg-paper-light rounded-sm p-3.5 border-2 border-ink-border mb-6 flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-ink-muted shadow-retro">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-sage-dark" />
-              <span>Role: <strong className="text-forest capitalize">{userRole}</strong></span>
+              <User className="w-3.5 h-3.5 text-coral" />
+              <span>Role: <strong className="text-ink capitalize">{userRole}</strong></span>
             </span>
             <span>•</span>
             <span className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-forest/50" />
+              <Clock className="w-3.5 h-3.5 text-ink-muted" />
               <span>Created {formatDate(document.created_at)}</span>
             </span>
           </div>
-          <div className="flex items-center gap-2 text-[11px] text-forest/50">
-            <ShieldCheck className="w-3.5 h-3.5 text-sage-dark" />
-            <span>Tiptap Atelier • Role-Enforced RBAC</span>
+          <div className="flex items-center gap-2 text-[11px] text-ink-muted">
+            <ShieldCheck className="w-3.5 h-3.5 text-retroGreen" />
+            <span>Draftly Atelier • Role-Based Access Control</span>
           </div>
         </div>
 

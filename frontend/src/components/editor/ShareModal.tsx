@@ -133,48 +133,48 @@ export default function ShareModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-draftly-forest/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-xs p-4"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-draftly-stone overflow-hidden"
+        className="relative w-full max-w-lg bg-paper-light rounded-sm shadow-retro-xl border-2 border-ink-border overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-draftly-stone/60 bg-draftly-ivory/50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-draftly-forest/10 flex items-center justify-center text-draftly-forest">
-              <Users className="w-5 h-5 text-draftly-forest" />
+        <div className="flex items-center justify-between px-6 py-4 border-b-2 border-ink-border bg-paper-cream">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-sm bg-coral border-2 border-ink-border flex items-center justify-center text-white shadow-retro">
+              <Users className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-lg font-serif font-bold text-draftly-forest tracking-tight">
+              <h2 className="text-base font-extrabold text-ink tracking-tight">
                 Share Document
               </h2>
-              <p className="text-xs text-draftly-forest/65">
+              <p className="text-xs text-ink-muted font-medium">
                 Manage collaborator permissions and invite teammates
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-draftly-forest/60 hover:text-draftly-forest hover:bg-draftly-stone/50 transition-colors"
+            className="p-1.5 rounded-sm text-ink-muted hover:text-ink hover:bg-paper-dark transition-colors cursor-pointer"
             title="Close modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Alerts */}
         {errorMessage && (
-          <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2.5 text-xs text-red-800">
-            <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+          <div className="mx-6 mt-4 p-3 bg-coral-light border-2 border-ink-border rounded-sm flex items-start gap-2.5 text-xs text-ink shadow-retro font-medium">
+            <AlertCircle className="w-4 h-4 text-coral shrink-0 mt-0.5" />
             <span className="flex-1 leading-relaxed">{errorMessage}</span>
           </div>
         )}
 
         {successMessage && (
-          <div className="mx-6 mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-2.5 text-xs text-emerald-800">
-            <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+          <div className="mx-6 mt-4 p-3 bg-retroGreen/15 border-2 border-ink-border rounded-sm flex items-start gap-2.5 text-xs text-ink shadow-retro font-medium">
+            <Check className="w-4 h-4 text-retroGreen shrink-0 mt-0.5" />
             <span className="flex-1 leading-relaxed">{successMessage}</span>
           </div>
         )}
@@ -182,10 +182,10 @@ export default function ShareModal({
         <div className="p-6 space-y-6">
           {/* Invite Form */}
           <form onSubmit={handleInvite} className="space-y-3">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-draftly-forest/75">
+            <label className="block text-xs font-bold uppercase tracking-wider text-ink">
               Invite Collaborator
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <div className="relative flex-1">
                 <input
                   type="email"
@@ -193,7 +193,7 @@ export default function ShareModal({
                   placeholder="collaborator@example.com"
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
-                  className="w-full pl-3.5 pr-3 py-2 text-sm bg-draftly-ivory/60 border border-draftly-stone rounded-xl focus:outline-none focus:ring-2 focus:ring-draftly-forest/30 focus:border-draftly-forest transition"
+                  className="w-full px-3 py-2 text-xs sm:text-sm bg-paper-light border-2 border-ink-border rounded-sm focus:outline-none focus:bg-white focus:shadow-retro font-medium text-ink transition"
                   disabled={submitting}
                 />
               </div>
@@ -201,7 +201,7 @@ export default function ShareModal({
               <select
                 value={roleInput}
                 onChange={(e) => setRoleInput(e.target.value as "editor" | "viewer")}
-                className="px-3 py-2 text-xs font-medium bg-draftly-ivory/60 border border-draftly-stone rounded-xl text-draftly-forest focus:outline-none focus:ring-2 focus:ring-draftly-forest/30 cursor-pointer"
+                className="px-3 py-2 text-xs font-bold bg-paper-cream border-2 border-ink-border rounded-sm text-ink focus:outline-none cursor-pointer"
                 disabled={submitting}
               >
                 <option value="viewer">Viewer (Read-only)</option>
@@ -211,7 +211,7 @@ export default function ShareModal({
               <button
                 type="submit"
                 disabled={submitting || !emailInput.trim()}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-draftly-forest hover:bg-draftly-forest/90 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-sm transition"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-coral hover:bg-coral-hover disabled:opacity-50 text-white text-xs font-extrabold border-2 border-ink-border rounded-sm shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition cursor-pointer"
               >
                 {submitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -223,54 +223,54 @@ export default function ShareModal({
                 )}
               </button>
             </div>
-            <p className="text-[11px] text-draftly-forest/60">
+            <p className="text-[11px] text-ink-muted font-medium">
               User must be registered with Draftly. Editors can edit content; Viewers have read-only access.
             </p>
           </form>
 
           {/* Collaborator List */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-draftly-forest/75">
+            <div className="flex items-center justify-between pb-2 border-b-2 border-ink-border">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-ink">
                 People with access
               </h3>
               {shareData && (
-                <span className="text-[11px] text-draftly-forest/60">
+                <span className="text-[11px] font-bold text-ink-muted">
                   {shareData.collaborators.length + 1} person{shareData.collaborators.length !== 0 ? "s" : ""}
                 </span>
               )}
             </div>
 
             {loading ? (
-              <div className="py-8 flex flex-col items-center justify-center text-draftly-forest/50 space-y-2">
-                <Loader2 className="w-5 h-5 animate-spin text-draftly-forest" />
-                <span className="text-xs">Loading collaborators...</span>
+              <div className="py-8 flex flex-col items-center justify-center text-ink-muted space-y-2">
+                <Loader2 className="w-5 h-5 animate-spin text-ink" />
+                <span className="text-xs font-bold">Loading collaborators...</span>
               </div>
             ) : (
-              <div className="divide-y divide-draftly-stone/60 max-h-60 overflow-y-auto pr-1">
+              <div className="divide-y-2 divide-ink-border/20 max-h-60 overflow-y-auto pr-1">
                 {/* Authoritative Owner */}
                 {shareData && (
                   <div className="py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-draftly-terracotta/20 text-draftly-terracotta flex items-center justify-center text-xs font-bold shrink-0">
+                      <div className="w-8 h-8 rounded-sm bg-coral border-2 border-ink-border text-white flex items-center justify-center text-xs font-extrabold shrink-0 shadow-[1px_1px_0px_#171717]">
                         {shareData.owner.username.slice(0, 2).toUpperCase()}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <p className="text-xs font-semibold text-draftly-forest truncate">
+                          <p className="text-xs font-bold text-ink truncate">
                             {shareData.owner.username}
                           </p>
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-                            <Crown className="w-2.5 h-2.5 text-amber-600" />
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm text-[10px] font-bold bg-retroBlue text-white border border-ink-border">
+                            <Crown className="w-2.5 h-2.5" />
                             Owner
                           </span>
                         </div>
-                        <p className="text-[11px] text-draftly-forest/60 truncate">
+                        <p className="text-[11px] text-ink-muted truncate font-mono">
                           {shareData.owner.email}
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs text-draftly-forest/60 font-medium">Author</span>
+                    <span className="text-xs text-ink-muted font-bold">Author</span>
                   </div>
                 )}
 
@@ -284,14 +284,14 @@ export default function ShareModal({
                       className="py-3 flex items-center justify-between gap-2"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-draftly-sage/25 text-draftly-forest flex items-center justify-center text-xs font-bold shrink-0">
+                        <div className="w-8 h-8 rounded-sm bg-paper-cream border-2 border-ink-border text-ink flex items-center justify-center text-xs font-bold shrink-0 shadow-[1px_1px_0px_#171717]">
                           {collab.username.slice(0, 2).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-semibold text-draftly-forest truncate">
+                          <p className="text-xs font-bold text-ink truncate">
                             {collab.username}
                           </p>
-                          <p className="text-[11px] text-draftly-forest/60 truncate">
+                          <p className="text-[11px] text-ink-muted truncate font-mono">
                             {collab.email}
                           </p>
                         </div>
@@ -307,7 +307,7 @@ export default function ShareModal({
                             )
                           }
                           disabled={isActioning}
-                          className="px-2.5 py-1 text-xs font-medium bg-draftly-ivory/80 border border-draftly-stone rounded-lg text-draftly-forest cursor-pointer focus:outline-none focus:ring-1 focus:ring-draftly-forest"
+                          className="px-2.5 py-1 text-xs font-bold bg-paper-cream border-2 border-ink-border rounded-sm text-ink cursor-pointer focus:outline-none"
                         >
                           <option value="viewer">Viewer</option>
                           <option value="editor">Editor</option>
@@ -316,11 +316,11 @@ export default function ShareModal({
                         <button
                           onClick={() => handleRevoke(collab.user_id, collab.email)}
                           disabled={isActioning}
-                          className="p-1.5 text-draftly-forest/40 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                          className="p-1.5 text-ink-muted hover:text-coral hover:bg-coral-light rounded-sm border border-transparent hover:border-ink-border transition cursor-pointer"
                           title="Revoke collaborator access"
                         >
                           {isActioning ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-draftly-forest" />
+                            <Loader2 className="w-4 h-4 animate-spin text-coral" />
                           ) : (
                             <Trash2 className="w-4 h-4" />
                           )}
@@ -331,7 +331,7 @@ export default function ShareModal({
                 })}
 
                 {shareData && shareData.collaborators.length === 0 && (
-                  <div className="py-6 text-center text-xs text-draftly-forest/50">
+                  <div className="py-6 text-center text-xs text-ink-muted font-medium">
                     No collaborators yet. Invite teammates using their email address above.
                   </div>
                 )}
@@ -341,10 +341,10 @@ export default function ShareModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-draftly-ivory/60 border-t border-draftly-stone/60 flex items-center justify-end">
+        <div className="px-6 py-4 bg-paper-cream border-t-2 border-ink-border flex items-center justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-draftly-stone/60 hover:bg-draftly-stone text-draftly-forest text-xs font-semibold rounded-xl transition"
+            className="px-4 py-2 bg-paper-light hover:bg-paper-dark border-2 border-ink-border text-ink text-xs font-bold rounded-sm shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition cursor-pointer"
           >
             Done
           </button>
@@ -353,4 +353,3 @@ export default function ShareModal({
     </div>
   );
 }
-
