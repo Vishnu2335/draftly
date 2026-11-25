@@ -4,11 +4,12 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { AlertCircle, ArrowRight, Lock, Mail, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowRight, Eye, EyeOff, Lock, Mail, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [clientError, setClientError] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -21,14 +22,9 @@ export default function LoginPage() {
     setClientError(null);
     setApiError(null);
 
-    // Client validation
+    // Client validation: allow email or username
     if (!email.trim() || !password) {
-      setClientError("Please enter both your email address and password.");
-      return;
-    }
-
-    if (!email.includes("@") || !email.includes(".")) {
-      setClientError("Please enter a valid email address.");
+      setClientError("Please enter your email or username and password.");
       return;
     }
 
@@ -79,7 +75,7 @@ export default function LoginPage() {
               htmlFor="email"
               className="block text-xs font-bold text-ink uppercase tracking-wider mb-1.5"
             >
-              Email Address
+              Email or Username
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-muted">
@@ -87,12 +83,12 @@ export default function LoginPage() {
               </div>
               <input
                 id="email"
-                type="email"
-                autoComplete="email"
+                type="text"
+                autoComplete="username"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
+                placeholder="name@example.com or username"
                 className="w-full pl-10 pr-3.5 py-2.5 rounded-sm bg-paper-light border-2 border-ink-border text-sm text-ink font-medium placeholder:text-ink-muted/60 focus:bg-white focus:outline-none focus:shadow-retro transition-all"
               />
             </div>
@@ -111,14 +107,26 @@ export default function LoginPage() {
               </div>
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full pl-10 pr-3.5 py-2.5 rounded-sm bg-paper-light border-2 border-ink-border text-sm text-ink font-medium placeholder:text-ink-muted/60 focus:bg-white focus:outline-none focus:shadow-retro transition-all"
+                className="w-full pl-10 pr-10 py-2.5 rounded-sm bg-paper-light border-2 border-ink-border text-sm text-ink font-medium placeholder:text-ink-muted/60 focus:bg-white focus:outline-none focus:shadow-retro transition-all"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-ink-muted hover:text-ink cursor-pointer"
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
             </div>
           </div>
 

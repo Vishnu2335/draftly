@@ -27,7 +27,7 @@ class UserRegisterRequest(BaseModel):
 class UserLoginRequest(BaseModel):
     """Payload for user login."""
 
-    email: EmailStr = Field(..., description="Registered user email.")
+    email: str = Field(..., min_length=1, description="Registered user email or username.")
     password: str = Field(..., min_length=1, description="Account password.")
 
 

@@ -2,7 +2,7 @@ import uuid
 from typing import Tuple
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -55,10 +55,15 @@ async def authenticate_user(
     db: AsyncSession,
     req: UserLoginRequest,
 ) -> Tuple[User, str]:
-    """Verify credentials and return user and signed JWT access token."""
-    normalized_email = req.email.lower().strip()
+    """Verify credentials and return user and signed JWT access token. Supports login by email or username."""
+    identifier = req.email.strip().lower()
 
-    stmt = select(User).where(func.lower(User.email) == normalized_email)
+    stmt = select(User).where(
+        or_(
+            func.lower(User.email) == identifier,
+            func.lower(User.username) == identifier,
+        )
+    )
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
 

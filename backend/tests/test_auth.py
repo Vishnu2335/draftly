@@ -129,6 +129,18 @@ async def test_successful_login(client: AsyncClient):
     assert data["user"]["email"] == "marcus@draftly.com"
     assert data["user"]["username"] == "marcus_pm"
 
+    # Also test login by username (e.g. "marcus_pm")
+    login_by_username_payload = {
+        "email": "marcus_pm",
+        "password": "ProductLeaderPass!",
+    }
+    response_user = await client.post("/api/v1/auth/login", json=login_by_username_payload)
+    assert response_user.status_code == 200
+    data_user = response_user.json()
+    assert data_user["user"]["username"] == "marcus_pm"
+    assert data_user["user"]["email"] == "marcus@draftly.com"
+
+
 
 @pytest.mark.asyncio
 async def test_incorrect_password_rejection(client: AsyncClient):
