@@ -18,6 +18,8 @@ from app.schemas.share import (
     DocumentShareUpdateRequest,
     SharedWithMeItem,
     SharedWithMeListResponse,
+    SharedByMeItem,
+    SharedByMeListResponse,
 )
 
 __all__ = [
@@ -36,4 +38,6 @@ __all__ = [
     "DocumentShareListResponse",
     "SharedWithMeItem",
     "SharedWithMeListResponse",
+    "SharedByMeItem",
+    "SharedByMeListResponse",
 ]

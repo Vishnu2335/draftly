@@ -16,6 +16,8 @@ from app.schemas.share import (
     DocumentShareUpdateRequest,
     SharedWithMeItem,
     SharedWithMeListResponse,
+    SharedByMeItem,
+    SharedByMeListResponse,
 )
 
 
@@ -318,4 +320,66 @@ async def list_shared_with_me(
         items=items,
         total=len(items),
     )
+
+
+async def list_shared_by_me(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+) -> SharedByMeListResponse:
+    """
+    List all active documents owned by the user that have at least one collaborator.
+    Includes each document's collaborators with their roles and profile details.
+    """
+    stmt = (
+        select(Document)
+        .join(DocumentShare, Document.id == DocumentShare.document_id)
+        .where(
+            Document.owner_id == user_id,
+            Document.is_deleted.is_(False),
+        )
+        .distinct()
+        .order_by(Document.updated_at.desc())
+    )
+    result = await db.execute(stmt)
+    documents = result.scalars().all()
+
+    items = []
+    for doc in documents:
+        collab_stmt = (
+            select(DocumentShare, User)
+            .join(User, DocumentShare.user_id == User.id)
+            .where(DocumentShare.document_id == doc.id)
+            .order_by(DocumentShare.shared_at.desc())
+        )
+        collab_res = await db.execute(collab_stmt)
+        collab_rows = collab_res.all()
+
+        collaborators = [
+            DocumentCollaborator(
+                id=share.id,
+                user_id=user.id,
+                email=user.email,
+                username=user.username,
+                role=share.role,
+                shared_at=share.shared_at,
+            )
+            for share, user in collab_rows
+        ]
+
+        items.append(
+            SharedByMeItem(
+                id=doc.id,
+                title=doc.title,
+                created_at=doc.created_at,
+                updated_at=doc.updated_at,
+                collaborators=collaborators,
+                total_collaborators=len(collaborators),
+            )
+        )
+
+    return SharedByMeListResponse(
+        items=items,
+        total=len(items),
+    )
+
 

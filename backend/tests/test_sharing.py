@@ -366,3 +366,15 @@ async def test_shared_with_me_aggregation(client: AsyncClient):
     assert res2.status_code == 200
     assert res2.json()["total"] == 1
     assert res2.json()["items"][0]["id"] == doc2_id
+
+    # Check Owner B's shared-by-me
+    res_b = await client.get("/api/v1/documents/shared-by-me", headers=owner_b["headers"])
+    assert res_b.status_code == 200
+    data_b = res_b.json()
+    assert data_b["total"] == 1
+    assert data_b["items"][0]["id"] == doc2_id
+    assert data_b["items"][0]["title"] == "Doc from Owner B"
+    assert len(data_b["items"][0]["collaborators"]) == 1
+    assert data_b["items"][0]["collaborators"][0]["email"] == "recipient@example.com"
+    assert data_b["items"][0]["collaborators"][0]["role"] == "viewer"
+

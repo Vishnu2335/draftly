@@ -73,3 +73,21 @@ class SharedWithMeListResponse(BaseModel):
     items: List[SharedWithMeItem]
     total: int
 
+
+class SharedByMeItem(BaseModel):
+    """Document owned by current user that has collaborators."""
+
+    id: uuid.UUID
+    title: str
+    created_at: datetime
+    updated_at: datetime
+    collaborators: List[DocumentCollaborator]
+    total_collaborators: int
+
+
+class SharedByMeListResponse(BaseModel):
+    """List of documents owned by user and shared with others."""
+
+    items: List[SharedByMeItem]
+    total: int
+

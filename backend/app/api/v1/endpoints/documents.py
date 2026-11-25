@@ -17,6 +17,7 @@ from app.schemas.share import (
     DocumentShareRequest,
     DocumentShareUpdateRequest,
     SharedWithMeListResponse,
+    SharedByMeListResponse,
 )
 from app.services.auth_service import get_current_active_user
 from app.services.document_service import (
@@ -30,6 +31,7 @@ from app.services.import_service import process_document_import
 from app.services.sharing_service import (
     list_document_collaborators,
     list_shared_with_me,
+    list_shared_by_me,
     revoke_collaborator_access,
     share_document,
     update_collaborator_role,
@@ -130,6 +132,22 @@ async def get_shared_with_me(
     db: AsyncSession = Depends(get_db),
 ) -> SharedWithMeListResponse:
     return await list_shared_with_me(
+        db=db,
+        user_id=current_user.id,
+    )
+
+
+@router.get(
+    "/shared-by-me",
+    response_model=SharedByMeListResponse,
+    summary="List documents shared by current user",
+    description="Retrieve all documents owned by the authenticated user that have been shared with collaborators.",
+)
+async def get_shared_by_me(
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> SharedByMeListResponse:
+    return await list_shared_by_me(
         db=db,
         user_id=current_user.id,
     )

@@ -96,6 +96,20 @@ export interface SharedWithMeListResponse {
   total: number;
 }
 
+export interface SharedByMeItem {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  collaborators: DocumentCollaborator[];
+  total_collaborators: number;
+}
+
+export interface SharedByMeListResponse {
+  items: SharedByMeItem[];
+  total: number;
+}
+
 export interface DocumentListResponse {
   items: DocumentItem[];
   total: number;
@@ -376,3 +390,23 @@ export async function apiGetSharedWithMe(
 
   return await res.json();
 }
+
+export async function apiGetSharedByMe(
+  token: string
+): Promise<SharedByMeListResponse> {
+  const res = await fetch(`${API_ENDPOINTS.DOCUMENTS}/shared-by-me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || err?.detail || `Failed to fetch shared documents (${res.status})`);
+  }
+
+  return await res.json();
+}
+

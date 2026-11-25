@@ -9,9 +9,13 @@ import {
   apiDeleteDocument,
   apiGetDocuments,
   apiGetSharedWithMe,
+  apiGetSharedByMe,
   apiUpdateDocument,
+  apiUpdateShareRole,
+  apiRevokeShare,
   DocumentItem,
   SharedWithMeItem,
+  SharedByMeItem,
 } from "@/lib/config";
 import {
   AlertCircle,
@@ -36,10 +40,12 @@ import {
   Trash2,
   UploadCloud,
   User,
+  UserPlus,
   Users,
   X,
 } from "lucide-react";
 import ImportModal from "@/components/dashboard/ImportModal";
+import ShareModal from "@/components/editor/ShareModal";
 
 type TabView = "my-docs" | "overview" | "shared" | "starred" | "trash" | "settings";
 type SortOption = "updated_desc" | "updated_asc" | "title_asc" | "title_desc";
@@ -60,9 +66,15 @@ export default function DashboardPage() {
   const [trashCount, setTrashCount] = useState<number>(0);
 
   // Shared documents state
+  const [sharedSubTab, setSharedSubTab] = useState<"with-me" | "by-me">("with-me");
   const [sharedDocuments, setSharedDocuments] = useState<SharedWithMeItem[]>([]);
+  const [sharedByMeDocuments, setSharedByMeDocuments] = useState<SharedByMeItem[]>([]);
   const [loadingShared, setLoadingShared] = useState<boolean>(false);
+  const [loadingSharedByMe, setLoadingSharedByMe] = useState<boolean>(false);
   const [sharedCount, setSharedCount] = useState<number>(0);
+  const [modifyingCollabKey, setModifyingCollabKey] = useState<string | null>(null);
+  const [shareFeedbackMsg, setShareFeedbackMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [shareModalDocId, setShareModalDocId] = useState<string | null>(null);
 
   // Search & Sorting state
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -96,10 +108,11 @@ export default function DashboardPage() {
     if (!token || !isAuthenticated) return;
     if (activeTab === "shared") {
       loadSharedDocuments();
+      loadSharedByMe();
     } else {
       loadDocuments();
+      loadSharedDocuments();
     }
-    loadSharedDocuments();
   }, [token, isAuthenticated, activeTab, sortBy]);
 
   const loadSharedDocuments = async () => {
@@ -113,6 +126,97 @@ export default function DashboardPage() {
       console.error("Failed to load shared documents:", err);
     } finally {
       setLoadingShared(false);
+    }
+  };
+
+  const loadSharedByMe = async () => {
+    if (!token) return;
+    setLoadingSharedByMe(true);
+    try {
+      const data = await apiGetSharedByMe(token);
+      setSharedByMeDocuments(data.items);
+    } catch (err: any) {
+      console.error("Failed to load documents shared by me:", err);
+    } finally {
+      setLoadingSharedByMe(false);
+    }
+  };
+
+  const handleUpdateCollaboratorRole = async (
+    docId: string,
+    collaboratorUserId: string,
+    newRole: "editor" | "viewer"
+  ) => {
+    if (!token) return;
+    const key = `${docId}_${collaboratorUserId}`;
+    setModifyingCollabKey(key);
+    setShareFeedbackMsg(null);
+    try {
+      await apiUpdateShareRole(token, docId, collaboratorUserId, newRole);
+      setSharedByMeDocuments((prev) =>
+        prev.map((doc) => {
+          if (doc.id !== docId) return doc;
+          return {
+            ...doc,
+            collaborators: doc.collaborators.map((c) =>
+              c.user_id === collaboratorUserId ? { ...c, role: newRole } : c
+            ),
+          };
+        })
+      );
+      setShareFeedbackMsg({
+        type: "success",
+        text: `Collaborator access updated to ${newRole}.`,
+      });
+      setTimeout(() => setShareFeedbackMsg(null), 3500);
+    } catch (err: any) {
+      setShareFeedbackMsg({
+        type: "error",
+        text: err?.message || "Failed to update collaborator role.",
+      });
+    } finally {
+      setModifyingCollabKey(null);
+    }
+  };
+
+  const handleRevokeCollaborator = async (
+    docId: string,
+    collaboratorUserId: string
+  ) => {
+    if (!token) return;
+    if (!window.confirm("Are you sure you want to revoke this collaborator's access?")) return;
+    const key = `${docId}_${collaboratorUserId}`;
+    setModifyingCollabKey(key);
+    setShareFeedbackMsg(null);
+    try {
+      await apiRevokeShare(token, docId, collaboratorUserId);
+      setSharedByMeDocuments((prev) =>
+        prev
+          .map((doc) => {
+            if (doc.id !== docId) return doc;
+            const updatedCollabs = doc.collaborators.filter(
+              (c) => c.user_id !== collaboratorUserId
+            );
+            return {
+              ...doc,
+              collaborators: updatedCollabs,
+              total_collaborators: updatedCollabs.length,
+            };
+          })
+          .filter((doc) => doc.total_collaborators > 0)
+      );
+      setShareFeedbackMsg({
+        type: "success",
+        text: "Collaborator access revoked successfully.",
+      });
+      setTimeout(() => setShareFeedbackMsg(null), 3500);
+    } catch (err: any) {
+      setShareFeedbackMsg({
+        type: "error",
+        text: err?.message || "Failed to revoke collaborator access.",
+      });
+    } finally {
+      setModifyingCollabKey(null);
     }
   };
 
@@ -577,98 +681,317 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Shared With Me Tab */}
+          {/* Shared Section (Shared With Me & Shared Docs) */}
           {activeTab === "shared" && (
             <div className="space-y-6">
               <div className="bg-paper-light rounded-sm border-2 border-ink-border p-6 shadow-retro-md">
+                {/* Header & Sub-Tabs */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b-2 border-ink-border">
                   <div>
                     <h3 className="text-xl font-extrabold text-ink">
-                      Shared With Me
+                      Document Collaboration
                     </h3>
                     <p className="text-xs text-ink-muted mt-0.5 font-medium">
-                      Documents shared with you by teammates with active role permissions
+                      Manage incoming and outgoing document shares and access permissions
                     </p>
                   </div>
-                  <span className="border-2 border-ink-border bg-paper-cream px-3 py-1 rounded-sm text-xs font-bold text-ink shadow-[1px_1px_0px_#171717] self-start sm:self-auto">
-                    {sharedDocuments.length} document{sharedDocuments.length === 1 ? "" : "s"}
-                  </span>
+
+                  {/* Sub-Tabs: Shared With Me & Shared Docs */}
+                  <div className="flex items-center gap-2 bg-paper-cream p-1 rounded-sm border-2 border-ink-border self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => setSharedSubTab("with-me")}
+                      className={`px-3 py-1.5 rounded-xs text-xs font-extrabold transition-all cursor-pointer ${
+                        sharedSubTab === "with-me"
+                          ? "bg-coral text-white shadow-retro"
+                          : "text-ink hover:text-coral"
+                      }`}
+                    >
+                      Shared With Me ({sharedDocuments.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSharedSubTab("by-me");
+                        loadSharedByMe();
+                      }}
+                      className={`px-3 py-1.5 rounded-xs text-xs font-extrabold transition-all cursor-pointer ${
+                        sharedSubTab === "by-me"
+                          ? "bg-coral text-white shadow-retro"
+                          : "text-ink hover:text-coral"
+                      }`}
+                    >
+                      Shared Docs ({sharedByMeDocuments.length})
+                    </button>
+                  </div>
                 </div>
 
-                {loadingShared ? (
-                  <div className="py-16 text-center">
-                    <Loader2 className="w-8 h-8 text-ink animate-spin mx-auto mb-3" />
-                    <p className="text-xs font-bold text-ink-muted">
-                      Loading shared workspace documents...
-                    </p>
+                {/* Feedback Notification */}
+                {shareFeedbackMsg && (
+                  <div
+                    className={`mt-4 p-3 rounded-sm border-2 border-ink-border text-xs font-bold flex items-center justify-between shadow-retro ${
+                      shareFeedbackMsg.type === "success"
+                        ? "bg-retroGreen/20 text-ink"
+                        : "bg-coral-light text-ink"
+                    }`}
+                  >
+                    <span>{shareFeedbackMsg.text}</span>
+                    <button
+                      onClick={() => setShareFeedbackMsg(null)}
+                      className="text-ink hover:opacity-75 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                ) : sharedDocuments.length === 0 ? (
-                  <div className="py-16 text-center space-y-3">
-                    <div className="w-12 h-12 rounded-sm bg-paper-cream border-2 border-ink-border text-ink mx-auto flex items-center justify-center shadow-retro">
-                      <Users className="w-6 h-6 text-coral" />
-                    </div>
-                    <div className="max-w-md mx-auto space-y-1">
-                      <h4 className="text-base font-bold text-ink">
-                        No Shared Documents Yet
-                      </h4>
-                      <p className="text-xs text-ink-muted font-medium leading-relaxed">
-                        When a teammate invites your email to collaborate on a document as an Editor or Viewer, it will appear here.
+                )}
+
+                {/* VIEW 1: Shared With Me */}
+                {sharedSubTab === "with-me" && (
+                  loadingShared ? (
+                    <div className="py-16 text-center">
+                      <Loader2 className="w-8 h-8 text-ink animate-spin mx-auto mb-3" />
+                      <p className="text-xs font-bold text-ink-muted">
+                        Loading shared workspace documents...
                       </p>
                     </div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-6">
-                    {sharedDocuments.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="bg-paper-light rounded-sm border-2 border-ink-border p-5 flex flex-col justify-between shadow-retro hover:shadow-retro-md transition-all"
-                      >
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="w-8 h-8 rounded-sm bg-paper-cream border-2 border-ink-border flex items-center justify-center text-ink shadow-[1px_1px_0px_#171717]">
-                              <FileText className="w-4 h-4 text-ink" />
+                  ) : sharedDocuments.length === 0 ? (
+                    <div className="py-16 text-center space-y-3">
+                      <div className="w-12 h-12 rounded-sm bg-paper-cream border-2 border-ink-border text-ink mx-auto flex items-center justify-center shadow-retro">
+                        <Users className="w-6 h-6 text-coral" />
+                      </div>
+                      <div className="max-w-md mx-auto space-y-1">
+                        <h4 className="text-base font-bold text-ink">
+                          No Documents Shared With You Yet
+                        </h4>
+                        <p className="text-xs text-ink-muted font-medium leading-relaxed">
+                          When a teammate invites your email to collaborate on a document as an Editor or Viewer, it will appear here.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-6">
+                      {sharedDocuments.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="bg-paper-light rounded-sm border-2 border-ink-border p-5 flex flex-col justify-between shadow-retro hover:shadow-retro-md transition-all"
+                        >
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="w-8 h-8 rounded-sm bg-paper-cream border-2 border-ink-border flex items-center justify-center text-ink shadow-[1px_1px_0px_#171717]">
+                                <FileText className="w-4 h-4 text-ink" />
+                              </div>
+                              {doc.role === "editor" ? (
+                                <span className="px-2.5 py-0.5 rounded-sm text-[11px] font-bold bg-coral text-white border border-ink-border">
+                                  Editor
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-0.5 rounded-sm text-[11px] font-bold bg-retroGreen text-white border border-ink-border flex items-center gap-1">
+                                  <Eye className="w-3 h-3" />
+                                  <span>Viewer</span>
+                                </span>
+                              )}
                             </div>
-                            {doc.role === "editor" ? (
-                              <span className="px-2.5 py-0.5 rounded-sm text-[11px] font-bold bg-coral text-white border border-ink-border">
-                                Editor
-                              </span>
-                            ) : (
-                              <span className="px-2.5 py-0.5 rounded-sm text-[11px] font-bold bg-retroGreen text-white border border-ink-border flex items-center gap-1">
-                                <Eye className="w-3 h-3" />
-                                <span>Viewer</span>
-                              </span>
-                            )}
+
+                            <div>
+                              <Link
+                                href={`/documents/${doc.id}`}
+                                className="text-base font-bold text-ink hover:text-coral line-clamp-1 transition-colors"
+                              >
+                                {doc.title || "Untitled Document"}
+                              </Link>
+                              <p className="text-xs text-ink-muted mt-1 flex items-center gap-1.5 font-medium">
+                                <User className="w-3.5 h-3.5 text-coral shrink-0" />
+                                <span className="truncate">
+                                  Shared by <strong className="text-ink">{doc.owner_username}</strong>
+                                </span>
+                              </p>
+                            </div>
                           </div>
 
-                          <div>
+                          <div className="mt-5 pt-3.5 border-t-2 border-ink-border/20 flex items-center justify-between text-xs font-semibold text-ink-muted">
+                            <span>{formatDate(doc.shared_at)}</span>
                             <Link
                               href={`/documents/${doc.id}`}
-                              className="text-base font-bold text-ink hover:text-coral line-clamp-1 transition-colors"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-sm bg-coral hover:bg-coral-hover text-white text-xs font-bold border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
                             >
-                              {doc.title || "Untitled Document"}
+                              <span>Open</span>
+                              <ExternalLink className="w-3 h-3" />
                             </Link>
-                            <p className="text-xs text-ink-muted mt-1 flex items-center gap-1.5 font-medium">
-                              <User className="w-3.5 h-3.5 text-coral shrink-0" />
-                              <span className="truncate">
-                                Shared by <strong className="text-ink">{doc.owner_username}</strong>
-                              </span>
-                            </p>
                           </div>
                         </div>
+                      ))}
+                    </div>
+                  )
+                )}
 
-                        <div className="mt-5 pt-3.5 border-t-2 border-ink-border/20 flex items-center justify-between text-xs font-semibold text-ink-muted">
-                          <span>{formatDate(doc.shared_at)}</span>
-                          <Link
-                            href={`/documents/${doc.id}`}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-sm bg-coral hover:bg-coral-hover text-white text-xs font-bold border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
-                          >
-                            <span>Open</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </Link>
-                        </div>
+                {/* VIEW 2: Shared Docs (Shared with others) */}
+                {sharedSubTab === "by-me" && (
+                  loadingSharedByMe ? (
+                    <div className="py-16 text-center">
+                      <Loader2 className="w-8 h-8 text-ink animate-spin mx-auto mb-3" />
+                      <p className="text-xs font-bold text-ink-muted">
+                        Loading documents you have shared...
+                      </p>
+                    </div>
+                  ) : sharedByMeDocuments.length === 0 ? (
+                    <div className="py-16 text-center space-y-4">
+                      <div className="w-12 h-12 rounded-sm bg-paper-cream border-2 border-ink-border text-ink mx-auto flex items-center justify-center shadow-retro">
+                        <Share2 className="w-6 h-6 text-coral" />
                       </div>
-                    ))}
-                  </div>
+                      <div className="max-w-md mx-auto space-y-1">
+                        <h4 className="text-base font-bold text-ink">
+                          No Documents Shared With Others Yet
+                        </h4>
+                        <p className="text-xs text-ink-muted font-medium leading-relaxed">
+                          You haven&apos;t shared any of your documents with other users yet. You can share documents from the &quot;All Documents&quot; view or inside any document.
+                        </p>
+                      </div>
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab("my-docs")}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-coral hover:bg-coral-hover text-white text-xs font-bold border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                        >
+                          <span>Go to All Documents</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-6 pt-6">
+                      {sharedByMeDocuments.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="bg-paper-light rounded-sm border-2 border-ink-border p-5 shadow-retro hover:shadow-retro-md transition-all"
+                        >
+                          {/* Document Top Bar */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b-2 border-ink-border/30">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-sm bg-paper-cream border-2 border-ink-border flex items-center justify-center text-ink shadow-[1px_1px_0px_#171717]">
+                                <FileText className="w-4 h-4 text-coral" />
+                              </div>
+                              <div>
+                                <Link
+                                  href={`/documents/${doc.id}`}
+                                  className="text-base font-bold text-ink hover:text-coral transition-colors"
+                                >
+                                  {doc.title || "Untitled Document"}
+                                </Link>
+                                <p className="text-[11px] text-ink-muted">
+                                  Updated {formatDate(doc.updated_at)} • {doc.total_collaborators} active collaborator{doc.total_collaborators === 1 ? "" : "s"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 self-end sm:self-auto">
+                              <button
+                                type="button"
+                                onClick={() => setShareModalDocId(doc.id)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-paper-light hover:bg-paper-cream text-ink text-xs font-bold border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                              >
+                                <UserPlus className="w-3.5 h-3.5 text-coral" />
+                                <span>Add User</span>
+                              </button>
+                              <Link
+                                href={`/documents/${doc.id}`}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-sm bg-coral hover:bg-coral-hover text-white text-xs font-bold border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                              >
+                                <span>Open</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                            </div>
+                          </div>
+
+                          {/* Collaborators List & Role Access Controls */}
+                          <div className="mt-4 space-y-2.5">
+                            <p className="text-[11px] font-extrabold uppercase tracking-wider text-ink-muted">
+                              Collaborator Permissions:
+                            </p>
+                            <div className="grid grid-cols-1 gap-2.5">
+                              {doc.collaborators.map((collab) => {
+                                const isUpdating = modifyingCollabKey === `${doc.id}_${collab.user_id}`;
+                                return (
+                                  <div
+                                    key={collab.id}
+                                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-paper-cream/50 rounded-sm border-2 border-ink-border"
+                                  >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <div className="w-7 h-7 rounded-full bg-coral text-white border border-ink-border flex items-center justify-center text-xs font-bold shrink-0">
+                                        {collab.username.charAt(0).toUpperCase()}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xs font-bold text-ink truncate">
+                                            {collab.username}
+                                          </span>
+                                          <span className="text-[11px] text-ink-muted truncate">
+                                            ({collab.email})
+                                          </span>
+                                        </div>
+                                        <span className="text-[10px] text-ink-muted">
+                                          Shared on {formatDate(collab.shared_at)}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Access Role Modifier Controls (View or Edit) */}
+                                    <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                                      {isUpdating ? (
+                                        <div className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-ink">
+                                          <Loader2 className="w-3.5 h-3.5 animate-spin text-coral" />
+                                          <span>Updating...</span>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center gap-1 bg-paper-light border-2 border-ink-border rounded-sm p-0.5">
+                                          <button
+                                            type="button"
+                                            title="Set read-only viewer access"
+                                            onClick={() =>
+                                              handleUpdateCollaboratorRole(doc.id, collab.user_id, "viewer")
+                                            }
+                                            className={`px-2.5 py-1 text-[11px] font-extrabold rounded-xs transition-all cursor-pointer ${
+                                              collab.role === "viewer"
+                                                ? "bg-retroGreen text-white shadow-[1px_1px_0px_#171717]"
+                                                : "text-ink hover:text-coral"
+                                            }`}
+                                          >
+                                            Viewer
+                                          </button>
+                                          <button
+                                            type="button"
+                                            title="Set editable access"
+                                            onClick={() =>
+                                              handleUpdateCollaboratorRole(doc.id, collab.user_id, "editor")
+                                            }
+                                            className={`px-2.5 py-1 text-[11px] font-extrabold rounded-xs transition-all cursor-pointer ${
+                                              collab.role === "editor"
+                                                ? "bg-coral text-white shadow-[1px_1px_0px_#171717]"
+                                                : "text-ink hover:text-coral"
+                                            }`}
+                                          >
+                                            Editor
+                                          </button>
+                                        </div>
+                                      )}
+
+                                      <button
+                                        type="button"
+                                        title="Revoke collaborator access"
+                                        disabled={isUpdating}
+                                        onClick={() => handleRevokeCollaborator(doc.id, collab.user_id)}
+                                        className="p-1.5 rounded-sm bg-paper-light hover:bg-coral-light border border-ink-border text-ink hover:text-coral transition-colors disabled:opacity-50 cursor-pointer"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )
                 )}
               </div>
             </div>
@@ -1215,6 +1538,19 @@ export default function DashboardPage() {
           onImportSuccess={(importedDoc) => {
             setIsImportModalOpen(false);
             router.push(`/documents/${importedDoc.id}`);
+          }}
+        />
+      )}
+
+      {/* Share Modal for Dashboard */}
+      {token && shareModalDocId && (
+        <ShareModal
+          isOpen={!!shareModalDocId}
+          token={token}
+          documentId={shareModalDocId}
+          onClose={() => {
+            setShareModalDocId(null);
+            loadSharedByMe();
           }}
         />
       )}
