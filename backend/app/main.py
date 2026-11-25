@@ -47,13 +47,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             logger.critical(err_msg)
             raise RuntimeError(err_msg)
 
-    # If using local SQLite database in development, ensure all tables are created
+    # Ensure all database tables are initialized on startup
     engine = get_engine()
-    if engine and "sqlite" in str(engine.url) and settings.ENVIRONMENT.lower() != "production":
-        import app.models  # noqa: F401
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        logger.info("Local SQLite database tables initialized.")
+    if engine:
+        try:
+            import app.models  # noqa: F401
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            logger.info("Database tables verified and initialized.")
+        except Exception as e:
+            logger.warning(f"Database table initialization check warning: {e}")
 
     # Verify initial database state on startup
     db_health = await check_database_connection()
