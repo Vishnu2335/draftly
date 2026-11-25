@@ -13,9 +13,9 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-paper-cream text-ink border-b-2 border-ink-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand / Logo (Always navigates to public landing page) */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-sm bg-coral border-2 border-ink-border flex items-center justify-center text-white font-sans font-extrabold text-xl shadow-retro group-hover:bg-coral-hover transition-colors">
+        {/* Brand / Logo (Static non-clickable branding element) */}
+        <div className="flex items-center gap-3 select-none cursor-default">
+          <div className="w-9 h-9 rounded-sm bg-coral border-2 border-ink-border flex items-center justify-center text-white font-sans font-extrabold text-xl shadow-retro">
             D
           </div>
           <div className="flex items-center gap-2">
@@ -26,7 +26,7 @@ export default function Navbar() {
               Workspace
             </span>
           </div>
-        </Link>
+        </div>
 
         {/* Navigation & Controls */}
         <nav className="flex items-center gap-3 sm:gap-5">
