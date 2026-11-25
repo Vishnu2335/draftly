@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { LogIn, LogOut, FileText, LayoutDashboard } from "lucide-react";
+import { LogIn, LogOut, LayoutDashboard } from "lucide-react";
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -29,21 +29,10 @@ export default function Navbar() {
         </div>
 
         {/* Navigation & Controls */}
-        <nav className="flex items-center gap-3 sm:gap-5">
-          {/* Main Navigation Links */}
-          <div className="hidden sm:flex items-center gap-4 text-xs font-bold">
-            <Link
-              href="/"
-              className={`transition-colors ${
-                pathname === "/"
-                  ? "text-coral underline underline-offset-4 decoration-2"
-                  : "text-ink hover:text-coral"
-              }`}
-            >
-              Overview
-            </Link>
-
-            {isAuthenticated && (
+        <nav className="flex items-center gap-3 sm:gap-4">
+          {/* Authenticated Links */}
+          {isAuthenticated && (
+            <div className="hidden sm:flex items-center gap-4 text-xs font-bold mr-2">
               <Link
                 href="/dashboard"
                 className={`transition-colors ${
@@ -54,10 +43,8 @@ export default function Navbar() {
               >
                 My Documents
               </Link>
-            )}
-          </div>
-
-          <div className="h-4 w-[2px] bg-ink-border mx-1 hidden sm:block" />
+            </div>
+          )}
 
           {/* User Auth Actions */}
           {isAuthenticated && user ? (
@@ -89,20 +76,22 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2 sm:gap-3">
+            /* Two Main Big Buttons: Sign In and Create */
+            <div className="flex items-center gap-3 sm:gap-4">
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-sm text-xs font-bold bg-paper-light hover:bg-paper-dark text-ink border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2 sm:px-6 sm:py-2.5 rounded-sm text-sm sm:text-base font-extrabold bg-paper-light hover:bg-paper-cream text-ink border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
               >
-                <LogIn className="w-3.5 h-3.5 text-coral" />
+                <LogIn className="w-4 h-4 text-coral" />
                 <span>Sign In</span>
               </Link>
 
               <Link
                 href="/register"
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-xs font-extrabold bg-coral hover:bg-coral-hover text-white border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                title="Create Account"
+                className="inline-flex items-center justify-center gap-2 px-6 py-2 sm:px-7 sm:py-2.5 rounded-sm text-sm sm:text-base font-extrabold bg-coral hover:bg-coral-hover text-white border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
               >
-                <span>Create Account</span>
+                <span>Create</span>
               </Link>
             </div>
           )}
