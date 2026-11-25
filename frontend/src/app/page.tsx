@@ -20,10 +20,41 @@ export default function Home() {
         <h1 className="text-4xl sm:text-6xl font-extrabold font-sans text-ink tracking-tight mb-4">
           Create &amp; Collaborate with Draftly
         </h1>
-        <p className="text-base sm:text-lg text-ink-muted max-w-2xl mx-auto font-medium leading-relaxed">
+        <p className="text-base sm:text-lg text-ink-muted max-w-2xl mx-auto font-medium leading-relaxed mb-8">
           Looking for focus? Experience a modern, distraction-free document workspace
           to write, import, and share with your team today.
         </p>
+
+        {/* Hero Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-md mx-auto">
+          {isAuthenticated ? (
+            <Link
+              href="/dashboard"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-sm text-base font-extrabold bg-coral hover:bg-coral-hover text-white border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+            >
+              <span>Open Workspace</span>
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-sm text-base font-extrabold bg-paper-light hover:bg-paper-cream text-ink border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+              >
+                <span>Sign In</span>
+              </Link>
+
+              <Link
+                href="/register"
+                title="Create Account"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 rounded-sm text-base font-extrabold bg-coral hover:bg-coral-hover text-white border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+              >
+                <span>Create</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </>
+          )}
+        </div>
       </section>
 
       {/* Main Content Layout (Sidebar Features + Showcase Cards) */}
