@@ -1,0 +1,11 @@
+# Draftly — Walkthrough Video URL
+
+[WALKTHROUGH VIDEO PLACEHOLDER]
+Please replace this line with your final unlisted Loom or YouTube URL:
+e.g., https://www.loom.com/share/your-video-id-here
+
+---
+Recorded by: [Your Name]
+Date: November 2026
+Duration: ~4 minutes
+Application: Draftly (Next.js + FastAPI + PostgreSQL)
