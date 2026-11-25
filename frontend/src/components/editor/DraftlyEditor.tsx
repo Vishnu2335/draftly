@@ -19,6 +19,7 @@ interface DraftlyEditorProps {
   token: string;
   readOnly?: boolean;
   onStatusChange?: (status: SaveStatus) => void;
+  onEditorReady?: (editor: any) => void;
 }
 
 export default function DraftlyEditor({
@@ -27,6 +28,7 @@ export default function DraftlyEditor({
   token,
   readOnly = false,
   onStatusChange,
+  onEditorReady,
 }: DraftlyEditorProps) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const [stats, setStats] = useState<{ words: number; chars: number }>({
@@ -120,8 +122,19 @@ export default function DraftlyEditor({
   useEffect(() => {
     if (editor) {
       editor.setEditable(!readOnly);
+      onEditorReady?.(editor);
     }
-  }, [editor, readOnly]);
+  }, [editor, readOnly, onEditorReady]);
+
+  // Sync content if restored from version history
+  useEffect(() => {
+    if (editor && initialContent) {
+      const currentText = editor.getText();
+      if (!currentText && initialContent.content?.length > 0) {
+        editor.commands.setContent(initialContent);
+      }
+    }
+  }, [editor, initialContent]);
 
   // Calculate initial word and character counts
   useEffect(() => {

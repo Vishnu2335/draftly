@@ -1,5 +1,7 @@
+import secrets
 import uuid
-from typing import Any, Dict, List, Tuple
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional, Tuple
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,6 +21,15 @@ from app.schemas.share import (
     SharedByMeItem,
     SharedByMeListResponse,
 )
+
+
+def _check_is_expired(expires_at: Optional[datetime]) -> bool:
+    """Helper to check if a share timestamp has passed in UTC."""
+    if not expires_at:
+        return False
+    now_utc = datetime.now(timezone.utc)
+    exp_utc = expires_at if expires_at.tzinfo else expires_at.replace(tzinfo=timezone.utc)
+    return exp_utc < now_utc
 
 
 async def get_document_with_role(
@@ -57,6 +68,13 @@ async def get_document_with_role(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Document not found.",
+        )
+
+    # Check if share has expired
+    if _check_is_expired(share.expires_at):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your access to this document has expired.",
         )
 
     return document, share.role
@@ -114,12 +132,18 @@ async def share_document(
             detail=f"Document is already shared with '{req.email}' as '{existing_share.role}'.",
         )
 
-    # 5. Create new share
+    # 5. Calculate expiration if provided
+    expires_at = None
+    if req.expires_in_days:
+        expires_at = datetime.now(timezone.utc) + timedelta(days=req.expires_in_days)
+
+    # 6. Create new share
     new_share = DocumentShare(
         id=uuid.uuid4(),
         document_id=document_id,
         user_id=target_user.id,
         role=req.role,
+        expires_at=expires_at,
     )
     db.add(new_share)
     await db.commit()
@@ -131,6 +155,8 @@ async def share_document(
         email=target_user.email,
         username=target_user.username,
         role=new_share.role,
+        expires_at=new_share.expires_at,
+        is_expired=False,
         shared_at=new_share.shared_at,
     )
 
@@ -173,6 +199,8 @@ async def list_document_collaborators(
             email=user.email,
             username=user.username,
             role=share.role,
+            expires_at=share.expires_at,
+            is_expired=_check_is_expired(share.expires_at),
             shared_at=share.shared_at,
         )
         for share, user in rows
@@ -197,7 +225,7 @@ async def update_collaborator_role(
     req: DocumentShareUpdateRequest,
 ) -> DocumentCollaborator:
     """
-    Update a collaborator's role between 'editor' and 'viewer'.
+    Update a collaborator's role between 'editor' and 'viewer' and update expiration.
     Only the document owner can perform this operation.
     """
     document, role = await get_document_with_role(db, document_id, owner_id)
@@ -226,6 +254,13 @@ async def update_collaborator_role(
 
     share, user = row
     share.role = req.role
+
+    if req.expires_in_days is not None:
+        if req.expires_in_days > 0:
+            share.expires_at = datetime.now(timezone.utc) + timedelta(days=req.expires_in_days)
+        else:
+            share.expires_at = None
+
     await db.commit()
     await db.refresh(share)
 
@@ -235,6 +270,8 @@ async def update_collaborator_role(
         email=user.email,
         username=user.username,
         role=share.role,
+        expires_at=share.expires_at,
+        is_expired=_check_is_expired(share.expires_at),
         shared_at=share.shared_at,
     )
 
@@ -300,21 +337,24 @@ async def list_shared_with_me(
     result = await db.execute(stmt)
     rows = result.all()
 
-    items = [
-        SharedWithMeItem(
-            id=doc.id,
-            title=doc.title,
-            content=doc.content,
-            owner_id=owner.id,
-            owner_email=owner.email,
-            owner_username=owner.username,
-            role=share.role,
-            shared_at=share.shared_at,
-            created_at=doc.created_at,
-            updated_at=doc.updated_at,
+    items = []
+    for doc, share, owner in rows:
+        if _check_is_expired(share.expires_at):
+            continue
+        items.append(
+            SharedWithMeItem(
+                id=doc.id,
+                title=doc.title,
+                content=doc.content,
+                owner_id=owner.id,
+                owner_email=owner.email,
+                owner_username=owner.username,
+                role=share.role,
+                shared_at=share.shared_at,
+                created_at=doc.created_at,
+                updated_at=doc.updated_at,
+            )
         )
-        for doc, share, owner in rows
-    ]
 
     return SharedWithMeListResponse(
         items=items,
@@ -361,6 +401,8 @@ async def list_shared_by_me(
                 email=user.email,
                 username=user.username,
                 role=share.role,
+                expires_at=share.expires_at,
+                is_expired=_check_is_expired(share.expires_at),
                 shared_at=share.shared_at,
             )
             for share, user in collab_rows
@@ -383,3 +425,26 @@ async def list_shared_by_me(
     )
 
 
+async def get_public_document_by_token(
+    db: AsyncSession,
+    token: str,
+) -> Tuple[Document, str]:
+    """Retrieve document by public share token without requiring login."""
+    stmt = (
+        select(Document, User.username)
+        .join(User, Document.owner_id == User.id)
+        .where(
+            Document.public_share_token == token,
+            Document.is_public.is_(True),
+            Document.is_deleted.is_(False),
+        )
+    )
+    result = await db.execute(stmt)
+    row = result.first()
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Public document not found or link has been disabled.",
+        )
+    doc, owner_username = row
+    return doc, owner_username

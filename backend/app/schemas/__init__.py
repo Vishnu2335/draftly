@@ -9,6 +9,7 @@ from app.schemas.document import (
     DocumentListResponse,
     DocumentResponse,
     DocumentUpdateRequest,
+    PublicDocumentResponse,
 )
 from app.schemas.share import (
     DocumentCollaborator,
@@ -21,6 +22,21 @@ from app.schemas.share import (
     SharedByMeItem,
     SharedByMeListResponse,
 )
+from app.schemas.version import (
+    DocumentVersionCreateRequest,
+    DocumentVersionResponse,
+    DocumentVersionListResponse,
+)
+from app.schemas.comment import (
+    DocumentCommentCreateRequest,
+    DocumentCommentUpdateRequest,
+    DocumentCommentResponse,
+    DocumentCommentListResponse,
+)
+from app.schemas.presence import (
+    PresenceUser,
+    DocumentPresenceResponse,
+)
 
 __all__ = [
     "UserRegisterRequest",
@@ -31,6 +47,7 @@ __all__ = [
     "DocumentUpdateRequest",
     "DocumentResponse",
     "DocumentListResponse",
+    "PublicDocumentResponse",
     "DocumentShareRequest",
     "DocumentShareUpdateRequest",
     "DocumentCollaborator",
@@ -40,4 +57,13 @@ __all__ = [
     "SharedWithMeListResponse",
     "SharedByMeItem",
     "SharedByMeListResponse",
+    "DocumentVersionCreateRequest",
+    "DocumentVersionResponse",
+    "DocumentVersionListResponse",
+    "DocumentCommentCreateRequest",
+    "DocumentCommentUpdateRequest",
+    "DocumentCommentResponse",
+    "DocumentCommentListResponse",
+    "PresenceUser",
+    "DocumentPresenceResponse",
 ]

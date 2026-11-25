@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -46,6 +46,17 @@ class Document(Base):
         Boolean,
         default=False,
         nullable=False,
+        index=True,
+    )
+    is_public: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+    public_share_token: Mapped[Optional[str]] = mapped_column(
+        String(64),
+        nullable=True,
+        unique=True,
         index=True,
     )
     created_at: Mapped[datetime] = mapped_column(

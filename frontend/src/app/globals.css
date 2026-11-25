@@ -183,3 +183,23 @@ body {
   font-style: italic;
   color: #3F3D39;
 }
+
+@media print {
+  body {
+    background-color: #ffffff !important;
+    background-image: none !important;
+    color: #000000 !important;
+  }
+  header, nav, .print\:hidden {
+    display: none !important;
+  }
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .tiptap {
+    max-width: 100% !important;
+    min-height: auto !important;
+  }
+}

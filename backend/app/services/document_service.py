@@ -123,6 +123,12 @@ async def update_document(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Only the document owner can delete or restore this document.",
             )
+        # Editor cannot manage public sharing
+        if req.is_public is not None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only the document owner can manage public link sharing.",
+            )
         # Editor is permitted to update content
         if req.content is not None:
             document.content = req.content
@@ -141,6 +147,12 @@ async def update_document(
 
     if req.is_deleted is not None:
         document.is_deleted = req.is_deleted
+
+    if req.is_public is not None:
+        if req.is_public and not document.public_share_token:
+            import secrets
+            document.public_share_token = secrets.token_urlsafe(32)
+        document.is_public = req.is_public
 
     # Touch update timestamp
     document.updated_at = func.now()

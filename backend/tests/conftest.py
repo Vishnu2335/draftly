@@ -1,3 +1,7 @@
+import os
+os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
+os.environ["ENVIRONMENT"] = "testing"
+
 import asyncio
 from typing import AsyncGenerator
 import pytest

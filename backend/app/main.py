@@ -24,6 +24,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager for startup and shutdown hooks."""
     logger.info(f"Starting {settings.PROJECT_NAME} API v{settings.VERSION} [{settings.ENVIRONMENT}]")
 
+    # In test environment, skip external network connections and checks
+    if settings.ENVIRONMENT.lower() == "testing":
+        yield
+        return
+
     # In production, enforce that PostgreSQL is configured and prevent SQLite
     if settings.ENVIRONMENT.lower() == "production":
         if not settings.DATABASE_URL:

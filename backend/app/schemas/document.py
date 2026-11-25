@@ -34,6 +34,10 @@ class DocumentUpdateRequest(BaseModel):
         default=None,
         description="Soft deletion flag. Set true to move to trash, false to restore.",
     )
+    is_public: Optional[bool] = Field(
+        default=None,
+        description="Toggle public read-only link sharing.",
+    )
 
 
 class DocumentResponse(BaseModel):
@@ -44,8 +48,22 @@ class DocumentResponse(BaseModel):
     content: Dict[str, Any]
     owner_id: uuid.UUID
     is_deleted: bool
+    is_public: bool = False
+    public_share_token: Optional[str] = None
     user_role: Optional[str] = "owner"  # "owner" | "editor" | "viewer"
     created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PublicDocumentResponse(BaseModel):
+    """Public read-only document view."""
+
+    id: uuid.UUID
+    title: str
+    content: Dict[str, Any]
+    owner_username: str
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

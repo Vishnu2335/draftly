@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from sqlalchemy import DateTime, ForeignKey, Index, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -40,6 +40,10 @@ class DocumentShare(Base):
         nullable=False,
         default="viewer",
     )  # "editor" or "viewer"
+    expires_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
     shared_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

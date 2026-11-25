@@ -12,6 +12,10 @@ import {
 } from "@/lib/config";
 import DraftlyEditor, { SaveStatus } from "@/components/editor/DraftlyEditor";
 import ShareModal from "@/components/editor/ShareModal";
+import VersionHistoryDrawer from "@/components/editor/VersionHistoryDrawer";
+import CommentsDrawer from "@/components/editor/CommentsDrawer";
+import PresenceIndicators from "@/components/editor/PresenceIndicators";
+import ExportMenu from "@/components/editor/ExportMenu";
 import {
   AlertCircle,
   ArrowLeft,
@@ -19,7 +23,9 @@ import {
   Clock,
   Edit3,
   Eye,
+  History,
   Loader2,
+  MessageSquare,
   RotateCcw,
   ShieldCheck,
   Trash2,
@@ -42,14 +48,18 @@ export default function DocumentDetailPage() {
   const [titleInput, setTitleInput] = useState<string>("");
   const [savingTitle, setSavingTitle] = useState<boolean>(false);
 
-  // Editor telemetry state
+  // Editor telemetry & instance reference
   const [editorSaveStatus, setEditorSaveStatus] = useState<SaveStatus>("saved");
+  const [editorInstance, setEditorInstance] = useState<any>(null);
 
   // Trash action state
   const [deleting, setDeleting] = useState<boolean>(false);
 
-  // Share modal state
+  // Drawers and Modals state
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
+  const [isCommentsOpen, setIsCommentsOpen] = useState<boolean>(false);
+  const [openCommentsCount, setOpenCommentsCount] = useState<number>(0);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -133,6 +143,14 @@ export default function DocumentDetailPage() {
     }
   };
 
+  const handleVersionRestored = (restoredDoc: DocumentItem) => {
+    setDocument(restoredDoc);
+    setTitleInput(restoredDoc.title);
+    if (editorInstance && restoredDoc.content) {
+      editorInstance.commands.setContent(restoredDoc.content);
+    }
+  };
+
   const formatDate = (isoString: string) => {
     try {
       const date = new Date(isoString);
@@ -190,7 +208,7 @@ export default function DocumentDetailPage() {
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col bg-paper">
       {/* Top Document Header Bar */}
-      <header className="bg-paper-cream border-b-2 border-ink-border sticky top-16 z-30 px-4 sm:px-8 py-3.5">
+      <header className="bg-paper-cream border-b-2 border-ink-border sticky top-16 z-30 px-4 sm:px-8 py-3 print:hidden">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* Left: Back & Editable Title */}
           <div className="flex items-center gap-3 min-w-0">
@@ -254,18 +272,27 @@ export default function DocumentDetailPage() {
             )}
           </div>
 
-          {/* Right: Telemetry, RBAC Indicators & Actions */}
-          <div className="flex items-center gap-3 self-end sm:self-auto">
+          {/* Right: Collaboration, Drawers, Telemetry & Actions */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 self-end sm:self-auto">
+            {/* Live Presence Indicator */}
+            {token && (
+              <PresenceIndicators
+                documentId={document.id}
+                token={token}
+                currentUserId={user?.id}
+              />
+            )}
+
             {/* RBAC Role Indicator for non-owners */}
             {isEditor && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-sm text-xs font-bold bg-retroGreen text-white border-2 border-ink-border shadow-retro">
-                Editor Access
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-bold bg-retroGreen text-white border-2 border-ink-border shadow-retro">
+                Editor
               </span>
             )}
             {isViewer && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-sm text-xs font-bold bg-paper-light text-ink border-2 border-ink-border shadow-retro">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-bold bg-paper-light text-ink border-2 border-ink-border shadow-retro">
                 <Eye className="w-3.5 h-3.5 text-coral" />
-                <span>Viewer (Read-only)</span>
+                <span>Viewer</span>
               </span>
             )}
 
@@ -286,35 +313,37 @@ export default function DocumentDetailPage() {
               </div>
             ) : (
               <>
-                {/* Save status badge (for Owner and Editor) */}
-                {!isViewer && (
-                  <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm border-2 border-ink-border text-xs font-bold shadow-retro bg-paper-light">
-                    {editorSaveStatus === "saving" && (
-                      <>
-                        <Loader2 className="w-3 h-3 text-coral animate-spin" />
-                        <span className="text-coral">Autosaving...</span>
-                      </>
-                    )}
-                    {editorSaveStatus === "saved" && (
-                      <>
-                        <Check className="w-3 h-3 text-retroGreen" />
-                        <span className="text-retroGreen">All Changes Saved</span>
-                      </>
-                    )}
-                    {editorSaveStatus === "unsaved" && (
-                      <>
-                        <Clock className="w-3 h-3 text-ink-muted" />
-                        <span className="text-ink-muted">Unsaved edits</span>
-                      </>
-                    )}
-                    {editorSaveStatus === "error" && (
-                      <>
-                        <AlertCircle className="w-3 h-3 text-coral" />
-                        <span className="text-coral">Save issue</span>
-                      </>
-                    )}
-                  </div>
-                )}
+                {/* Export Dropdown Menu */}
+                <ExportMenu
+                  title={document.title}
+                  getContentJson={() => editorInstance?.getJSON() || document.content}
+                  getTextContent={() => editorInstance?.getText() || ""}
+                />
+
+                {/* Comments Drawer Button */}
+                <button
+                  onClick={() => setIsCommentsOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-paper-light hover:bg-paper-cream text-ink text-xs font-bold border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  title="Discussion and comments thread"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-coral" />
+                  <span>Comments</span>
+                  {openCommentsCount > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-xs bg-coral text-white text-[10px] font-extrabold">
+                      {openCommentsCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Version History Drawer Button */}
+                <button
+                  onClick={() => setIsHistoryOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-paper-light hover:bg-paper-cream text-ink text-xs font-bold border-2 border-ink-border shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  title="Document revision snapshots and restore"
+                >
+                  <History className="w-3.5 h-3.5 text-ink-muted" />
+                  <span>History</span>
+                </button>
 
                 {/* Owner Actions: Share & Trash */}
                 {isOwner && (
@@ -348,7 +377,7 @@ export default function DocumentDetailPage() {
       {/* Main Writing Canvas */}
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Document Metadata Bar */}
-        <div className="bg-paper-light rounded-sm p-3.5 border-2 border-ink-border mb-6 flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-ink-muted shadow-retro">
+        <div className="bg-paper-light rounded-sm p-3.5 border-2 border-ink-border mb-6 flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-ink-muted shadow-retro print:hidden">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-coral" />
@@ -374,6 +403,7 @@ export default function DocumentDetailPage() {
             token={token}
             readOnly={isViewer}
             onStatusChange={setEditorSaveStatus}
+            onEditorReady={setEditorInstance}
           />
         )}
       </main>
@@ -383,8 +413,35 @@ export default function DocumentDetailPage() {
         <ShareModal
           documentId={document.id}
           token={token}
+          document={document}
           isOpen={isShareModalOpen}
           onClose={() => setIsShareModalOpen(false)}
+          onDocumentUpdate={(updated) => setDocument(updated)}
+        />
+      )}
+
+      {/* Version History Drawer */}
+      {token && (
+        <VersionHistoryDrawer
+          documentId={document.id}
+          token={token}
+          isOpen={isHistoryOpen}
+          canRestore={isOwner || isEditor}
+          onClose={() => setIsHistoryOpen(false)}
+          onRestore={handleVersionRestored}
+        />
+      )}
+
+      {/* Comments Drawer */}
+      {token && (
+        <CommentsDrawer
+          documentId={document.id}
+          token={token}
+          currentUserEmail={user?.email}
+          isOwnerOrEditor={isOwner || isEditor}
+          isOpen={isCommentsOpen}
+          onClose={() => setIsCommentsOpen(false)}
+          onCommentCountChange={setOpenCommentsCount}
         />
       )}
     </div>

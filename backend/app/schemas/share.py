@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Literal
+from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
@@ -12,14 +12,26 @@ class DocumentShareRequest(BaseModel):
         default="viewer",
         description="Access role: 'editor' can modify content; 'viewer' has read-only access.",
     )
+    expires_in_days: Optional[int] = Field(
+        default=None,
+        ge=1,
+        le=365,
+        description="Optional access expiration in days (e.g. 7, 30 days).",
+    )
 
 
 class DocumentShareUpdateRequest(BaseModel):
-    """Payload to update an existing collaborator's role."""
+    """Payload to update an existing collaborator's role or expiration."""
 
     role: Literal["editor", "viewer"] = Field(
         ...,
         description="Updated access role ('editor' or 'viewer').",
+    )
+    expires_in_days: Optional[int] = Field(
+        default=None,
+        ge=1,
+        le=365,
+        description="Optional updated expiration in days, or None.",
     )
 
 
@@ -31,6 +43,8 @@ class DocumentCollaborator(BaseModel):
     email: str
     username: str
     role: str  # "editor" or "viewer"
+    expires_at: Optional[datetime] = None
+    is_expired: bool = False
     shared_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

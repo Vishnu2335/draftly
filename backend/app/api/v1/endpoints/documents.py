@@ -10,6 +10,7 @@ from app.schemas.document import (
     DocumentListResponse,
     DocumentResponse,
     DocumentUpdateRequest,
+    PublicDocumentResponse,
 )
 from app.schemas.share import (
     DocumentCollaborator,
@@ -19,6 +20,18 @@ from app.schemas.share import (
     SharedWithMeListResponse,
     SharedByMeListResponse,
 )
+from app.schemas.version import (
+    DocumentVersionCreateRequest,
+    DocumentVersionListResponse,
+    DocumentVersionResponse,
+)
+from app.schemas.comment import (
+    DocumentCommentCreateRequest,
+    DocumentCommentListResponse,
+    DocumentCommentResponse,
+    DocumentCommentUpdateRequest,
+)
+from app.schemas.presence import DocumentPresenceResponse
 from app.services.auth_service import get_current_active_user
 from app.services.document_service import (
     create_document,
@@ -29,12 +42,28 @@ from app.services.document_service import (
 )
 from app.services.import_service import process_document_import
 from app.services.sharing_service import (
+    get_public_document_by_token,
     list_document_collaborators,
     list_shared_with_me,
     list_shared_by_me,
     revoke_collaborator_access,
     share_document,
     update_collaborator_role,
+)
+from app.services.version_service import (
+    create_document_version,
+    list_document_versions,
+    restore_document_version,
+)
+from app.services.comment_service import (
+    create_document_comment,
+    delete_document_comment,
+    list_document_comments,
+    update_document_comment,
+)
+from app.services.presence_service import (
+    get_active_presence,
+    record_presence_heartbeat,
 )
 
 router = APIRouter()
@@ -154,6 +183,26 @@ async def get_shared_by_me(
 
 
 @router.get(
+    "/public/{token}",
+    response_model=PublicDocumentResponse,
+    summary="Get public read-only document",
+    description="View a document publicly using its unique public share token without requiring authentication.",
+)
+async def get_public_document(
+    token: str,
+    db: AsyncSession = Depends(get_db),
+) -> PublicDocumentResponse:
+    doc, owner_username = await get_public_document_by_token(db=db, token=token)
+    return PublicDocumentResponse(
+        id=doc.id,
+        title=doc.title,
+        content=doc.content,
+        owner_username=owner_username,
+        updated_at=doc.updated_at,
+    )
+
+
+@router.get(
     "/{document_id}",
     response_model=DocumentResponse,
     summary="Get document by ID",
@@ -215,6 +264,8 @@ async def delete_document_by_id(
         permanent=permanent,
     )
 
+
+# --- Sharing Endpoints ---
 
 @router.post(
     "/{document_id}/share",
@@ -293,4 +344,189 @@ async def revoke_collaborator_access_endpoint(
         document_id=document_id,
         owner_id=current_user.id,
         target_user_id=collaborator_user_id,
+    )
+
+
+# --- Version History Endpoints ---
+
+@router.get(
+    "/{document_id}/versions",
+    response_model=DocumentVersionListResponse,
+    summary="List document versions",
+    description="Retrieve all revision snapshots created for this document.",
+)
+async def get_document_versions_endpoint(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentVersionListResponse:
+    return await list_document_versions(
+        db=db,
+        document_id=document_id,
+        user_id=current_user.id,
+    )
+
+
+@router.post(
+    "/{document_id}/versions",
+    response_model=DocumentVersionResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create version snapshot",
+    description="Create a manual snapshot of the current document state.",
+)
+async def create_document_version_endpoint(
+    document_id: uuid.UUID,
+    req: Optional[DocumentVersionCreateRequest] = None,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentVersionResponse:
+    title = req.title if req else None
+    return await create_document_version(
+        db=db,
+        document_id=document_id,
+        user_id=current_user.id,
+        title=title,
+    )
+
+
+@router.post(
+    "/{document_id}/versions/{version_id}/restore",
+    response_model=DocumentResponse,
+    summary="Restore document version",
+    description="Revert the document content and title back to a previous snapshot state.",
+)
+async def restore_document_version_endpoint(
+    document_id: uuid.UUID,
+    version_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentResponse:
+    doc = await restore_document_version(
+        db=db,
+        document_id=document_id,
+        version_id=version_id,
+        user_id=current_user.id,
+    )
+    res = DocumentResponse.model_validate(doc)
+    res.user_role = "owner" if doc.owner_id == current_user.id else "editor"
+    return res
+
+
+# --- Comments Endpoints ---
+
+@router.get(
+    "/{document_id}/comments",
+    response_model=DocumentCommentListResponse,
+    summary="List comments",
+    description="Retrieve all comments and discussion threads on this document.",
+)
+async def get_document_comments_endpoint(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentCommentListResponse:
+    return await list_document_comments(
+        db=db,
+        document_id=document_id,
+        user_id=current_user.id,
+    )
+
+
+@router.post(
+    "/{document_id}/comments",
+    response_model=DocumentCommentResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add comment",
+    description="Add a comment to the document.",
+)
+async def add_document_comment_endpoint(
+    document_id: uuid.UUID,
+    req: DocumentCommentCreateRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentCommentResponse:
+    return await create_document_comment(
+        db=db,
+        document_id=document_id,
+        user=current_user,
+        req=req,
+    )
+
+
+@router.patch(
+    "/{document_id}/comments/{comment_id}",
+    response_model=DocumentCommentResponse,
+    summary="Update or resolve comment",
+    description="Edit comment text (author) or toggle resolved status (author, owner, editor).",
+)
+async def update_document_comment_endpoint(
+    document_id: uuid.UUID,
+    comment_id: uuid.UUID,
+    req: DocumentCommentUpdateRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentCommentResponse:
+    return await update_document_comment(
+        db=db,
+        document_id=document_id,
+        comment_id=comment_id,
+        user_id=current_user.id,
+        req=req,
+    )
+
+
+@router.delete(
+    "/{document_id}/comments/{comment_id}",
+    summary="Delete comment",
+    description="Delete a comment from the document (author or owner only).",
+)
+async def delete_document_comment_endpoint(
+    document_id: uuid.UUID,
+    comment_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    return await delete_document_comment(
+        db=db,
+        document_id=document_id,
+        comment_id=comment_id,
+        user_id=current_user.id,
+    )
+
+
+# --- Live Collaboration Presence Endpoints ---
+
+@router.post(
+    "/{document_id}/presence",
+    response_model=DocumentPresenceResponse,
+    summary="Send presence heartbeat",
+    description="Report user presence on the document and receive currently active collaborators.",
+)
+async def presence_heartbeat_endpoint(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentPresenceResponse:
+    return await record_presence_heartbeat(
+        db=db,
+        document_id=document_id,
+        user=current_user,
+    )
+
+
+@router.get(
+    "/{document_id}/presence",
+    response_model=DocumentPresenceResponse,
+    summary="Get active collaborators",
+    description="Retrieve all collaborators who have viewed or edited this document within the last 60 seconds.",
+)
+async def get_presence_endpoint(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentPresenceResponse:
+    return await get_active_presence(
+        db=db,
+        document_id=document_id,
+        user_id=current_user.id,
     )
