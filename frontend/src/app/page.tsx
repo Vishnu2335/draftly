@@ -5,18 +5,13 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import {
   ArrowRight,
-  CheckSquare,
   FileEdit,
-  FileText,
-  Search,
   Share2,
-  Sparkles,
   UploadCloud,
-  Users,
 } from "lucide-react";
 
 export default function Home() {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
@@ -25,46 +20,10 @@ export default function Home() {
         <h1 className="text-4xl sm:text-6xl font-extrabold font-sans text-ink tracking-tight mb-4">
           Create &amp; Collaborate with Draftly
         </h1>
-        <p className="text-base sm:text-lg text-ink-muted max-w-2xl mx-auto font-medium leading-relaxed mb-8">
+        <p className="text-base sm:text-lg text-ink-muted max-w-2xl mx-auto font-medium leading-relaxed">
           Looking for focus? Experience a modern, distraction-free document workspace
           to write, import, and share with your team today.
         </p>
-
-        {/* Hero Quick-Action Bar (Modeled after reference search bar) */}
-        <div className="max-w-2xl mx-auto bg-paper-light border-2 border-ink-border rounded-sm p-3 shadow-retro-md flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 px-3 py-2 w-full text-left text-ink-muted text-sm font-medium border-2 border-ink-border bg-paper-cream/60 rounded-sm">
-            <Search className="w-4 h-4 text-ink flex-shrink-0" />
-            <span className="truncate">Draftly Document Workspace • Ready to write</span>
-          </div>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            {isAuthenticated && user ? (
-              <Link
-                href="/dashboard"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-sm bg-coral hover:bg-coral-hover text-white border-2 border-ink-border font-extrabold text-sm shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
-              >
-                <span>Open Workspace</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 rounded-sm bg-paper-light hover:bg-paper-dark text-ink border-2 border-ink-border font-bold text-sm shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/register"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-sm bg-coral hover:bg-coral-hover text-white border-2 border-ink-border font-extrabold text-sm shadow-retro active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
-                >
-                  <span>Create Account</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
       </section>
 
       {/* Main Content Layout (Sidebar Features + Showcase Cards) */}
