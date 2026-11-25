@@ -120,9 +120,9 @@ async def check_database_connection() -> Dict[str, Any]:
 
             if val == 1:
                 msg = (
-                    "Connected to local SQLite database for development. Live Supabase PostgreSQL connection is ready whenever a PostgreSQL URI (postgresql+asyncpg://...) is provided in backend/.env."
+                    "Connected to local ephemeral SQLite storage. Notice: Data stored in this instance will reset upon service redeployment. Configure DATABASE_URL in your Render Dashboard to connect to your permanent Supabase PostgreSQL database."
                     if is_sqlite
-                    else "Live connection to Supabase PostgreSQL verified."
+                    else "Live connection to Supabase PostgreSQL verified. Data will persist across redeployments."
                 )
                 return {
                     "status": "connected",

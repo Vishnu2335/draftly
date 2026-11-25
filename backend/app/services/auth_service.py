@@ -68,9 +68,22 @@ async def authenticate_user(
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(req.password, user.hashed_password):
+        # Check if database has 0 users (indicates ephemeral container wipe upon redeployment)
+        count_stmt = select(func.count(User.id))
+        count_res = await db.execute(count_stmt)
+        total_users = count_res.scalar() or 0
+
+        if total_users == 0:
+            detail_msg = (
+                "Incorrect email or password. Notice: The database has no registered users because it reset upon the recent service redeploy (running on ephemeral storage). "
+                "Please create an account to start, and configure your permanent DATABASE_URL in Render Dashboard to persist your account and documents permanently."
+            )
+        else:
+            detail_msg = "Incorrect email or password."
+
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password.",
+            detail=detail_msg,
             headers={"WWW-Authenticate": "Bearer"},
         )
 
