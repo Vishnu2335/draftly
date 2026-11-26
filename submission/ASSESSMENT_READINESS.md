@@ -120,8 +120,7 @@ This report evaluates Draftly against all nine core assessment criteria, documen
     - `ARCHITECTURE.md`: Technical deep dive with Mermaid diagrams, ERD, and sequence flows.
     - `AI_WORKFLOW.md`: Honest evaluation of AI-assisted engineering, verification, and rejected suggestions.
     - `SUBMISSION.md`: Feature matrix and verified reviewer test account plan.
-    - `VIDEO_PRESENTATION_SCRIPT.md`: Word-for-word, ~4-minute walkthrough script with timestamps and visual action cues.
-    - `VIDEO_SHOT_LIST.md`: Comprehensive scene-by-scene recording storyboard and setup checklist.
+    - `WALKTHROUGH_VIDEO_URL.txt`: Walkthrough video link placeholder.
 - **Remaining Gaps:**
   - None. Complete documentation suite delivered.
 

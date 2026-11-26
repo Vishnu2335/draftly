@@ -6,8 +6,6 @@
 - [x] **Project Documentation:** [`submission/README.md`](README.md)
 - [x] **System Architecture Document:** [`submission/ARCHITECTURE.md`](ARCHITECTURE.md)
 - [x] **AI Workflow & Verification Report:** [`submission/AI_WORKFLOW.md`](AI_WORKFLOW.md)
-- [x] **Walkthrough Video Presentation Script:** [`submission/VIDEO_PRESENTATION_SCRIPT.md`](VIDEO_PRESENTATION_SCRIPT.md)
-- [x] **Video Recording Shot List & Checklist:** [`submission/VIDEO_SHOT_LIST.md`](VIDEO_SHOT_LIST.md)
 - [x] **Assessment Readiness Audit:** [`submission/ASSESSMENT_READINESS.md`](ASSESSMENT_READINESS.md)
 - [x] **Walkthrough Video URL Placeholder:** [`submission/WALKTHROUGH_VIDEO_URL.txt`](WALKTHROUGH_VIDEO_URL.txt)
 
